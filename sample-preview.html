@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NOCTIX — Auth & Dashboard Sample</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#08081a;--bg2:#0f0f28;--bg3:#14143a;--card:#12122e;--accent:#7c3aed;--accent2:#db2777;--al:#a78bfa;--gold:#f59e0b;--text:#f1f5f9;--text2:#94a3b8;--text3:#475569;--border:rgba(255,255,255,0.07);--border2:rgba(124,58,237,0.35);--grad:linear-gradient(135deg,#7c3aed,#db2777);--success:#10b981;--r:12px;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px 20px;}
+h1{font-family:'Playfair Display',serif;font-size:28px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;}
+.sub{color:var(--text3);font-size:14px;margin-bottom:24px;text-align:center;}
+.demo-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:32px;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 22px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;border:none;transition:.2s;}
+.btn-primary{background:var(--grad);color:#fff;}
+.btn-primary:hover{opacity:.85;transform:translateY(-1px);}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border);}
+.btn-outline:hover{border-color:var(--al);color:var(--al);}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:.25s;}
+.overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--bg3);border:1px solid var(--border);border-radius:18px;width:100%;max-width:460px;overflow:hidden;transform:translateY(24px) scale(.97);transition:.25s;}
+.overlay.open .modal{transform:none;}
+.mhead{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);}
+.mhead h2{font-size:18px;font-weight:700;}
+.mclose{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.07);border:none;color:var(--text2);font-size:18px;cursor:pointer;transition:.2s;}
+.mclose:hover{background:rgba(255,255,255,.13);color:var(--text);}
+.mbody{padding:24px;}
+
+/* ── ROLE SELECTION ── */
+.role-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.role-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:14px;padding:20px 16px;text-align:center;cursor:pointer;transition:.2s;}
+.role-card:hover,.role-card.selected{border-color:var(--border2);background:rgba(124,58,237,.12);}
+.role-card .icon{font-size:36px;margin-bottom:10px;}
+.role-card h3{font-size:14px;font-weight:700;margin-bottom:5px;}
+.role-card p{font-size:12px;color:var(--text3);line-height:1.5;}
+
+/* ── SOCIAL BUTTONS ── */
+.social-btns{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+.social-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:.2s;font-family:inherit;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);}
+.social-btn:hover{border-color:var(--border2);background:rgba(124,58,237,.1);}
+.social-btn.google .ico{background:#fff;border-radius:4px;padding:2px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;}
+.social-btn.apple .ico{font-size:20px;}
+.divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--text3);font-size:12px;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:13px;color:var(--text2);margin-bottom:6px;font-weight:500;}
+.finput{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:9px;font-size:14px;transition:.2s;font-family:inherit;}
+.finput:focus{border-color:var(--border2);box-shadow:0 0 0 3px rgba(124,58,237,.15);outline:none;}
+.finput::placeholder{color:var(--text3);}
+.fsubmit{width:100%;margin-top:6px;padding:13px;font-size:15px;border-radius:9px;}
+.auth-tabs{display:flex;background:rgba(255,255,255,.04);border-radius:10px;padding:4px;margin-bottom:20px;}
+.atab{flex:1;padding:9px;text-align:center;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:.2s;color:var(--text2);}
+.atab.active{background:var(--accent);color:#fff;}
+
+/* ── PRO DASHBOARD ── */
+.dashboard{display:none;position:fixed;inset:0;z-index:200;background:var(--bg);}
+.dashboard.open{display:flex;}
+.dash-sidebar{width:240px;background:var(--bg2);border-right:1px solid var(--border);padding:24px 0;display:flex;flex-direction:column;flex-shrink:0;}
+.dash-logo{font-family:'Playfair Display',serif;font-size:20px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;padding:0 20px;margin-bottom:8px;}
+.dash-role{font-size:11px;color:var(--text3);padding:0 20px;margin-bottom:28px;text-transform:uppercase;letter-spacing:.5px;}
+.dash-nav{display:flex;flex-direction:column;gap:2px;padding:0 10px;flex:1;}
+.dnav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:14px;font-weight:500;color:var(--text2);cursor:pointer;transition:.2s;}
+.dnav-item:hover,.dnav-item.active{background:rgba(124,58,237,.15);color:var(--al);}
+.dnav-item .icon{font-size:18px;width:22px;text-align:center;}
+.dash-signout{margin:16px 10px 0;padding:10px 12px;border-radius:8px;font-size:14px;font-weight:500;color:var(--text3);cursor:pointer;display:flex;align-items:center;gap:10px;transition:.2s;}
+.dash-signout:hover{color:#ef4444;}
+.dash-main{flex:1;overflow-y:auto;padding:32px;}
+.dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.dash-header h2{font-family:'Playfair Display',serif;font-size:26px;font-weight:800;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.stat-card .snum{font-size:28px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.stat-card .slbl{font-size:12px;color:var(--text3);margin-top:4px;}
+
+/* ADD EVENT FORM */
+.form-section{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:20px;}
+.form-section h3{font-size:16px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-grid .full{grid-column:1/-1;}
+.finput-area{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:9px;font-size:14px;font-family:inherit;resize:vertical;min-height:90px;}
+.finput-area:focus{border-color:var(--border2);outline:none;}
+.upload-zone{border:2px dashed var(--border);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:.2s;}
+.upload-zone:hover{border-color:var(--border2);background:rgba(124,58,237,.05);}
+.upload-zone .icon{font-size:32px;margin-bottom:8px;}
+.upload-zone p{font-size:14px;color:var(--text2);}
+.upload-zone small{font-size:12px;color:var(--text3);}
+.ticket-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;}
+.ticket-row .finput{flex:1;}
+.ticket-row button{padding:8px 12px;border-radius:8px;font-size:18px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:.2s;font-family:inherit;}
+.ticket-row button:hover{border-color:#ef4444;color:#ef4444;}
+.add-ticket-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--al);cursor:pointer;padding:8px 0;background:none;border:none;font-family:inherit;}
+.add-ticket-btn:hover{text-decoration:underline;}
+
+/* EVENT CARD (pro) */
+.pro-event-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;align-items:center;gap:16px;margin-bottom:12px;}
+.pro-event-emoji{width:56px;height:56px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.pro-event-info{flex:1;}
+.pro-event-info h4{font-weight:700;font-size:15px;margin-bottom:3px;}
+.pro-event-info p{font-size:12px;color:var(--text3);}
+.pro-event-actions{display:flex;gap:8px;}
+.pro-event-actions button{padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;}
+.ebtn-edit{background:rgba(124,58,237,.15);border:1px solid var(--border2);color:var(--al);}
+.ebtn-del{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;}
+
+/* USER DASHBOARD */
+.user-dash{display:none;position:fixed;inset:0;z-index:200;background:var(--bg);}
+.user-dash.open{display:flex;}
+.udash-tabs{display:flex;gap:4px;background:rgba(255,255,255,.04);border-radius:12px;padding:4px;margin-bottom:24px;}
+.utab{flex:1;padding:10px;text-align:center;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;color:var(--text2);}
+.utab.active{background:var(--accent);color:#fff;}
+.ticket-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:14px;}
+.ticket-card-top{padding:16px;display:flex;align-items:center;gap:14px;}
+.ticket-qr{width:54px;height:54px;background:rgba(255,255,255,.9);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;}
+.ticket-info h4{font-weight:700;font-size:15px;margin-bottom:3px;}
+.ticket-info p{font-size:12px;color:var(--text3);}
+.ticket-card-bottom{padding:12px 16px;border-top:1px dashed var(--border);display:flex;align-items:center;justify-content:space-between;}
+.ticket-card-bottom span{font-size:12px;color:var(--text3);}
+.ticket-status{font-size:12px;font-weight:700;padding:4px 10px;border-radius:100px;}
+.status-upcoming{background:rgba(16,185,129,.15);color:var(--success);}
+.status-used{background:rgba(71,85,105,.15);color:var(--text3);}
+
+/* TOAST */
+.toasts{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:14px;display:flex;align-items:center;gap:8px;transform:translateX(120%);transition:transform .3s;max-width:300px;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(16,185,129,.3);}
+</style>
+</head>
+<body>
+
+<h1>NOCTIX — Sample Preview</h1>
+<p class="sub">Click each button to preview the screen</p>
+
+<div class="demo-btns">
+  <button class="btn btn-primary" onclick="openOverlay('authOverlay')">🔐 Login / Sign Up Modal</button>
+  <button class="btn btn-outline" onclick="openDash('proDash')">🏢 Professional Dashboard</button>
+  <button class="btn btn-outline" onclick="openDash('userDash')">🎟 User Dashboard</button>
+</div>
+
+<!-- ═══ AUTH MODAL ═══ -->
+<div class="overlay" id="authOverlay">
+  <div class="modal">
+    <div class="mhead">
+      <h2 id="authTitle">Join NOCTIX</h2>
+      <button class="mclose" onclick="closeOverlay('authOverlay')">✕</button>
+    </div>
+    <div class="mbody">
+
+      <!-- STEP 1: Role Selection -->
+      <div id="stepRole">
+        <p style="font-size:13px;color:var(--text2);margin-bottom:16px">Who are you joining as?</p>
+        <div class="role-cards">
+          <div class="role-card" onclick="selectRole('user')">
+            <div class="icon">🎉</div>
+            <h3>Fan / Guest</h3>
+            <p>Discover events, buy tickets &amp; manage bookings</p>
+          </div>
+          <div class="role-card" onclick="selectRole('pro')">
+            <div class="icon">🏢</div>
+            <h3>Professional</h3>
+            <p>Promote events, manage venues &amp; sell tickets</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: Login/Signup -->
+      <div id="stepAuth" style="display:none">
+        <div class="auth-tabs">
+          <div class="atab active" id="ltab" onclick="switchTab('login')">Log In</div>
+          <div class="atab" id="stab" onclick="switchTab('signup')">Sign Up</div>
+        </div>
+
+        <!-- Social Buttons -->
+        <div class="social-btns">
+          <button class="social-btn google" onclick="googleSignIn()">
+            <span class="ico">
+              <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.5 1.2 8.9 3.2l6.6-6.6C35.5 2.5 30.1 0 24 0 14.6 0 6.6 5.4 2.5 13.3l7.7 6C12.1 13 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 6.9-9.9 7.1-17z"/><path fill="#FBBC05" d="M10.2 28.7A14.5 14.5 0 019.5 24c0-1.6.3-3.2.7-4.7l-7.7-6A23.9 23.9 0 000 24c0 3.9.9 7.5 2.5 10.7l7.7-6z"/><path fill="#34A853" d="M24 48c6.1 0 11.2-2 14.9-5.4l-7.5-5.8c-2 1.4-4.6 2.2-7.4 2.2-6.4 0-11.9-3.5-13.8-8.4l-7.7 6C6.6 42.6 14.6 48 24 48z"/></svg>
+            </span>
+            Continue with Google
+          </button>
+          <button class="social-btn apple" onclick="appleSignIn()">
+            <span class="ico">🍎</span>
+            Continue with Apple
+          </button>
+        </div>
+
+        <div class="divider">or continue with email</div>
+
+        <div id="loginFields">
+          <div class="form-group"><label>Email</label><input class="finput" type="email" placeholder="you@example.com"/></div>
+          <div class="form-group"><label>Password</label><input class="finput" type="password" placeholder="••••••••"/></div>
+          <button class="btn btn-primary fsubmit" onclick="doLogin()">Log In</button>
+        </div>
+        <div id="signupFields" style="display:none">
+          <div class="form-group"><label>Full Name</label><input class="finput" type="text" placeholder="Your name"/></div>
+          <div id="bizField" style="display:none"><div class="form-group"><label>Business / Venue Name</label><input class="finput" type="text" placeholder="e.g. Babylon Club Istanbul"/></div></div>
+          <div class="form-group"><label>Email</label><input class="finput" type="email" placeholder="you@example.com"/></div>
+          <div class="form-group"><label>Password</label><input class="finput" type="password" placeholder="At least 8 characters"/></div>
+          <button class="btn btn-primary fsubmit" onclick="doSignup()">Create Account</button>
+        </div>
+
+        <p style="margin-top:14px;font-size:12px;color:var(--text3);text-align:center">
+          <a href="#" onclick="goBackRole()" style="color:var(--al)">← Change role</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PROFESSIONAL DASHBOARD ═══ -->
+<div class="dashboard" id="proDash">
+  <div class="dash-sidebar">
+    <div class="dash-logo">NOCTIX</div>
+    <div class="dash-role">Professional Portal</div>
+    <div class="dash-nav">
+      <div class="dnav-item active" onclick="showProPage('overview',this)"><span class="icon">📊</span> Overview</div>
+      <div class="dnav-item" onclick="showProPage('myevents',this)"><span class="icon">🎉</span> My Events</div>
+      <div class="dnav-item" onclick="showProPage('addevent',this)"><span class="icon">➕</span> Add Event</div>
+      <div class="dnav-item" onclick="showProPage('profile',this)"><span class="icon">🏢</span> Business Profile</div>
+      <div class="dnav-item" onclick="showProPage('billing',this)"><span class="icon">💳</span> Billing</div>
+    </div>
+    <div class="dash-signout" onclick="signOut('proDash')">🚪 Sign Out</div>
+  </div>
+  <div class="dash-main" id="proMainContent"></div>
+</div>
+
+<!-- ═══ USER DASHBOARD ═══ -->
+<div class="user-dash" id="userDash">
+  <div style="width:100%;max-width:800px;margin:0 auto;padding:32px 24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:26px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent">NOCTIX</div>
+        <div style="font-size:13px;color:var(--text3);margin-top:2px">Welcome back, Alex 👋</div>
+      </div>
+      <button class="btn btn-outline" onclick="signOut('userDash')">Sign Out</button>
+    </div>
+    <div class="udash-tabs">
+      <div class="utab active" onclick="showUserTab('tickets',this)">🎟 My Tickets</div>
+      <div class="utab" onclick="showUserTab('upcoming',this)">📅 Upcoming</div>
+      <div class="utab" onclick="showUserTab('favorites',this)">♥ Favourites</div>
+      <div class="utab" onclick="showUserTab('profile',this)">👤 Profile</div>
+    </div>
+    <div id="userTabContent"></div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+// ── HELPERS ──
+function openOverlay(id){ document.getElementById(id).classList.add('open'); }
+function closeOverlay(id){ document.getElementById(id).classList.remove('open'); }
+function openDash(id){ document.getElementById(id).classList.add('open'); if(id==='proDash') showProPage('overview',document.querySelector('.dnav-item.active')); if(id==='userDash') showUserTab('tickets',document.querySelector('.utab.active')); }
+function signOut(id){ document.getElementById(id).classList.remove('open'); toast('Signed out successfully','success'); }
+
+function toast(msg,type='success'){
+  const c=document.getElementById('toasts');
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`<span>${type==='success'?'✅':'❌'}</span> ${msg}`;
+  c.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),300);},3000);
+}
+
+// ── AUTH ──
+let selectedRole = 'user';
+function selectRole(r){
+  selectedRole=r;
+  document.getElementById('stepRole').style.display='none';
+  document.getElementById('stepAuth').style.display='';
+  document.getElementById('bizField').style.display = r==='pro' ? '' : 'none';
+}
+function goBackRole(){
+  document.getElementById('stepRole').style.display='';
+  document.getElementById('stepAuth').style.display='none';
+}
+function switchTab(t){
+  document.getElementById('ltab').classList.toggle('active',t==='login');
+  document.getElementById('stab').classList.toggle('active',t==='signup');
+  document.getElementById('loginFields').style.display=t==='login'?'':'none';
+  document.getElementById('signupFields').style.display=t==='signup'?'':'none';
+}
+function googleSignIn(){
+  // In production: replace with real Google OAuth client ID
+  // google.accounts.id.initialize({ client_id: 'YOUR_CLIENT_ID', callback: handleCredential });
+  simulateLogin('Google');
+}
+function appleSignIn(){
+  // In production: replace with real Apple Service ID
+  // AppleID.auth.init({ clientId: 'YOUR_SERVICE_ID', redirectURI: 'YOUR_REDIRECT', scope: 'name email' });
+  simulateLogin('Apple');
+}
+function doLogin(){ simulateLogin('Email'); }
+function doSignup(){ simulateLogin('Email'); }
+function simulateLogin(provider){
+  closeOverlay('authOverlay');
+  toast(`Signed in with ${provider} as ${selectedRole==='pro'?'Professional':'Fan'} ✓`,'success');
+  setTimeout(()=>openDash(selectedRole==='pro'?'proDash':'userDash'),600);
+}
+
+// ── PRO DASHBOARD PAGES ──
+function showProPage(page, el){
+  document.querySelectorAll('.dnav-item').forEach(i=>i.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const main = document.getElementById('proMainContent');
+
+  if(page==='overview'){
+    main.innerHTML=`
+      <div class="dash-header"><h2>Dashboard Overview</h2><button class="btn btn-primary" onclick="showProPage('addevent',null)">+ Add New Event</button></div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="snum">3</div><div class="slbl">Active Events</div></div>
+        <div class="stat-card"><div class="snum">842</div><div class="slbl">Tickets Sold</div></div>
+        <div class="stat-card"><div class="snum">₺124k</div><div class="slbl">Revenue</div></div>
+        <div class="stat-card"><div class="snum">4.8★</div><div class="slbl">Avg. Rating</div></div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:16px">Recent Events</h3>
+        ${proEventsHTML()}
+      </div>`;
+  }
+
+  if(page==='myevents'){
+    main.innerHTML=`
+      <div class="dash-header"><h2>My Events</h2><button class="btn btn-primary" onclick="showProPage('addevent',null)">+ Add Event</button></div>
+      ${proEventsHTML()}`;
+  }
+
+  if(page==='addevent'){
+    main.innerHTML=`
+      <div class="dash-header"><h2>Add New Event</h2></div>
+      <form onsubmit="submitEvent(event)">
+        <div class="form-section">
+          <h3>📋 Basic Info</h3>
+          <div class="form-grid">
+            <div class="full form-group"><label>Event Title *</label><input class="finput" placeholder="e.g. Subculture Istanbul"/></div>
+            <div class="form-group"><label>Event Type</label><select class="finput"><option>Concert</option><option>Club Night</option><option>Festival</option><option>Live Band</option><option>DJ Set</option></select></div>
+            <div class="form-group"><label>Genre</label><select class="finput"><option>Techno</option><option>House</option><option>EDM</option><option>Rock</option><option>Hip-Hop</option><option>Jazz</option><option>Pop</option></select></div>
+            <div class="form-group"><label>Date *</label><input class="finput" type="date"/></div>
+            <div class="form-group"><label>Doors Open</label><input class="finput" type="time" value="21:00"/></div>
+            <div class="form-group"><label>City *</label><select class="finput"><option>Istanbul</option><option>Izmir</option><option>Ankara</option><option>Bodrum</option><option>Antalya</option></select></div>
+            <div class="form-group"><label>Venue / Address *</label><input class="finput" placeholder="e.g. Zorlu PSM, Besiktas"/></div>
+            <div class="full form-group"><label>Event Description *</label><textarea class="finput-area" placeholder="Describe your event — lineup, vibe, what to expect…"></textarea></div>
+            <div class="full form-group"><label>Event Rules</label><textarea class="finput-area" placeholder="e.g. No re-entry, 18+ only, no professional cameras…" style="min-height:70px"></textarea></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>🖼 Event Photos</h3>
+          <div class="upload-zone" onclick="document.getElementById('imgInput').click()">
+            <div class="icon">📸</div>
+            <p>Click to upload event photos</p>
+            <small>JPG, PNG or WEBP — up to 10 images, max 5MB each</small>
+          </div>
+          <input type="file" id="imgInput" multiple accept="image/*" style="display:none" onchange="previewImages(this)"/>
+          <div id="imgPreview" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px"></div>
+        </div>
+
+        <div class="form-section">
+          <h3>🎟 Ticket Types</h3>
+          <div id="ticketRows">
+            <div class="ticket-row">
+              <input class="finput" placeholder="Ticket name (e.g. General)"/>
+              <input class="finput" placeholder="Price ₺" type="number"/>
+              <input class="finput" placeholder="Qty" type="number"/>
+              <button type="button" onclick="removeTicketRow(this)">✕</button>
+            </div>
+          </div>
+          <button type="button" class="add-ticket-btn" onclick="addTicketRow()">+ Add ticket type</button>
+        </div>
+
+        <div style="display:flex;gap:12px">
+          <button type="submit" class="btn btn-primary" style="flex:2;padding:13px">🚀 Publish Event</button>
+          <button type="button" class="btn btn-outline" style="flex:1;padding:13px">Save Draft</button>
+        </div>
+      </form>`;
+  }
+
+  if(page==='profile'){
+    main.innerHTML=`
+      <div class="dash-header"><h2>Business Profile</h2></div>
+      <div class="form-section">
+        <h3>🏢 Business Info</h3>
+        <div class="form-grid">
+          <div class="full"><div class="upload-zone" style="padding:20px;margin-bottom:16px;display:flex;align-items:center;gap:16px;text-align:left">
+            <div style="width:70px;height:70px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#db2777);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">🏢</div>
+            <div><p>Upload business logo</p><small>Recommended: 400×400px</small></div>
+          </div></div>
+          <div class="form-group"><label>Business Name</label><input class="finput" placeholder="Your club / promoter name" value="Babylon Istanbul"/></div>
+          <div class="form-group"><label>Category</label><select class="finput"><option>Club / Venue</option><option>Event Promoter</option><option>Artist</option><option>Festival</option></select></div>
+          <div class="form-group"><label>City</label><select class="finput"><option>Istanbul</option><option>Izmir</option><option>Ankara</option></select></div>
+          <div class="form-group"><label>Address</label><input class="finput" placeholder="Full address" value="Şehbender Sokak, Asmalımescit"/></div>
+          <div class="full form-group"><label>About</label><textarea class="finput-area" placeholder="Describe your business…">Istanbul's most iconic live music venue since 1999. Four floors, multiple stages, world-class programming.</textarea></div>
+          <div class="form-group"><label>Website</label><input class="finput" placeholder="https://" value="https://babylon.com.tr"/></div>
+          <div class="form-group"><label>Instagram</label><input class="finput" placeholder="@handle" value="@babylonist"/></div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:8px" onclick="toast('Profile saved ✓','success')">Save Profile</button>
+      </div>`;
+  }
+
+  if(page==='billing'){
+    main.innerHTML=`
+      <div class="dash-header"><h2>Billing</h2></div>
+      <div class="form-section">
+        <h3>💳 Payment Methods</h3>
+        <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:12px"><span style="font-size:24px">💳</span><div><div style="font-weight:600;font-size:14px">•••• •••• •••• 4242</div><div style="font-size:12px;color:var(--text3)">Expires 12/27</div></div></div>
+          <span style="font-size:11px;font-weight:700;background:rgba(16,185,129,.15);color:var(--success);padding:4px 10px;border-radius:100px">Default</span>
+        </div>
+        <button class="btn btn-outline" style="font-size:13px">+ Add Payment Method</button>
+      </div>
+      <div class="form-section">
+        <h3>📄 Transaction History</h3>
+        ${[['Payout — March 2026','₺18,400','Completed'],['Payout — February 2026','₺12,750','Completed'],['Payout — January 2026','₺9,200','Completed']].map(([label,amt,status])=>`
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+          <div style="font-size:14px">${label}</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-weight:700;color:var(--success)">${amt}</span>
+            <span style="font-size:11px;font-weight:700;background:rgba(16,185,129,.15);color:var(--success);padding:3px 10px;border-radius:100px">${status}</span>
+          </div>
+        </div>`).join('')}
+      </div>`;
+  }
+}
+
+function proEventsHTML(){
+  const evs=[
+    {emoji:'🎛',grad:'linear-gradient(135deg,#3b0764,#7c3aed)',title:'Subculture Istanbul',date:'Apr 5, 2026',sold:320,cap:600},
+    {emoji:'🌿',grad:'linear-gradient(135deg,#134e4a,#10b981)',title:'Nora En Pure — Voyage',date:'Jun 1, 2026',sold:180,cap:500},
+    {emoji:'🎷',grad:'linear-gradient(135deg,#312e81,#6366f1)',title:'Jazz on the Bosphorus',date:'Apr 22, 2026',sold:210,cap:300},
+  ];
+  return evs.map(e=>`
+    <div class="pro-event-card">
+      <div class="pro-event-emoji" style="background:${e.grad}">${e.emoji}</div>
+      <div class="pro-event-info">
+        <h4>${e.title}</h4>
+        <p>📅 ${e.date} · 🎟 ${e.sold}/${e.cap} tickets sold</p>
+      </div>
+      <div class="pro-event-actions">
+        <button class="ebtn-edit" onclick="toast('Opening editor…','success')">Edit</button>
+        <button class="ebtn-del" onclick="toast('Event deleted','success')">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── PRO FORM ACTIONS ──
+function submitEvent(e){
+  e.preventDefault();
+  toast('Event published successfully! 🚀','success');
+}
+function addTicketRow(){
+  const row=document.createElement('div');
+  row.className='ticket-row';
+  row.innerHTML=`<input class="finput" placeholder="Ticket name"/><input class="finput" placeholder="Price ₺" type="number"/><input class="finput" placeholder="Qty" type="number"/><button type="button" onclick="removeTicketRow(this)">✕</button>`;
+  document.getElementById('ticketRows').appendChild(row);
+}
+function removeTicketRow(btn){ btn.closest('.ticket-row').remove(); }
+function previewImages(input){
+  const preview=document.getElementById('imgPreview');
+  [...input.files].forEach(f=>{
+    const url=URL.createObjectURL(f);
+    const div=document.createElement('div');
+    div.style.cssText='width:80px;height:80px;border-radius:8px;overflow:hidden;position:relative;flex-shrink:0;background:var(--bg3);';
+    div.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover"/>`;
+    preview.appendChild(div);
+  });
+}
+
+// ── USER TABS ──
+function showUserTab(tab, el){
+  document.querySelectorAll('.utab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const c=document.getElementById('userTabContent');
+
+  if(tab==='tickets'){
+    c.innerHTML=`
+      <h3 style="font-weight:700;margin-bottom:16px">My Tickets (3)</h3>
+      ${[
+        {emoji:'🎛',title:'Subculture Istanbul',date:'Apr 5, 2026 · 22:00',venue:'Zorlu PSM',ref:'NCT-A8F2K1',status:'upcoming'},
+        {emoji:'⚡',title:'Ultra Istanbul',date:'Jun 15, 2026 · 18:00',venue:'TIM Show Center',ref:'NCT-B3X9P2',status:'upcoming'},
+        {emoji:'🎷',title:'Jazz on the Bosphorus',date:'Jan 10, 2026 · 20:00',venue:'Babylon',ref:'NCT-C7Q4L5',status:'used'},
+      ].map(t=>`
+      <div class="ticket-card">
+        <div class="ticket-card-top">
+          <div class="ticket-qr">▣</div>
+          <div class="ticket-info">
+            <h4>${t.title}</h4>
+            <p>📅 ${t.date}</p>
+            <p>📍 ${t.venue}</p>
+          </div>
+          <span class="ticket-status status-${t.status}">${t.status==='upcoming'?'Upcoming':'Used'}</span>
+        </div>
+        <div class="ticket-card-bottom">
+          <span>Ref: ${t.ref}</span>
+          ${t.status==='upcoming'?'<button class="btn btn-outline" style="font-size:12px;padding:6px 14px">Download PDF</button>':'<span style="color:var(--text3)">Event ended</span>'}
+        </div>
+      </div>`).join('')}`;
+  }
+  if(tab==='upcoming'){
+    c.innerHTML=`<h3 style="font-weight:700;margin-bottom:16px">Upcoming Events Near You</h3><p style="color:var(--text3);font-size:14px">Based on your saved genres and location — <a href="#" style="color:var(--al)">update preferences</a></p><br/><div style="display:grid;gap:12px">${['Hardwell Revealed — May 1','Charlotte de Witte — May 15','The 1975 — May 22'].map(e=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:600">${e}</span><button class="btn btn-primary" style="font-size:12px;padding:7px 16px">Get Tickets</button></div>`).join('')}</div>`;
+  }
+  if(tab==='favorites'){
+    c.innerHTML=`<h3 style="font-weight:700;margin-bottom:16px">Favourited Events (2)</h3><div style="display:grid;gap:12px">${['Armin van Buuren Live — Apr 8','Bodrum Sunset Festival — Jun 20'].map(e=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:600">${e}</span><div style="display:flex;gap:8px"><button class="btn btn-outline" style="font-size:12px;padding:7px 14px">♥ Remove</button><button class="btn btn-primary" style="font-size:12px;padding:7px 16px">Get Tickets</button></div></div>`).join('')}</div>`;
+  }
+  if(tab==='profile'){
+    c.innerHTML=`
+      <h3 style="font-weight:700;margin-bottom:20px">My Profile</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="form-group full" style="grid-column:1/-1"><label style="display:block;font-size:13px;color:var(--text2);margin-bottom:6px;font-weight:500">Full Name</label><input class="finput" value="Alex Johnson"/></div>
+        <div class="form-group"><label style="display:block;font-size:13px;color:var(--text2);margin-bottom:6px;font-weight:500">Email</label><input class="finput" value="alex@example.com"/></div>
+        <div class="form-group"><label style="display:block;font-size:13px;color:var(--text2);margin-bottom:6px;font-weight:500">Phone</label><input class="finput" value="+90 532 000 00 00"/></div>
+        <div class="form-group" style="grid-column:1/-1"><label style="display:block;font-size:13px;color:var(--text2);margin-bottom:6px;font-weight:500">Favourite City</label><select class="finput"><option>Istanbul</option><option>Izmir</option><option>Ankara</option></select></div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:8px" onclick="toast('Profile saved ✓','success')">Save Changes</button>`;
+  }
+}
+</script>
+</body>
+</html>

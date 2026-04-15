@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tonight — Drop Flyer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:100%;height:100%;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Plus Jakarta Sans',sans-serif;}
+
+  /* ── FLYER SHEET ── */
+  .flyer{
+    width:210mm;
+    min-height:297mm;
+    background:#0a0b14;
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:0;
+  }
+
+  /* ── BACKGROUND GLOW FX ── */
+  .glow-orb{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;}
+  .glow-1{width:400px;height:400px;background:rgba(245,200,66,.13);top:-80px;left:-80px;}
+  .glow-2{width:350px;height:350px;background:rgba(0,208,132,.09);bottom:100px;right:-60px;}
+  .glow-3{width:200px;height:200px;background:rgba(245,200,66,.07);bottom:200px;left:40px;}
+
+  /* ── GRAIN OVERLAY ── */
+  .flyer::before{
+    content:'';
+    position:absolute;inset:0;z-index:1;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity:.4;
+    pointer-events:none;
+  }
+
+  /* ── TOP STRIP ── */
+  .top-strip{
+    width:100%;background:#f5c842;
+    padding:8px 32px;
+    display:flex;align-items:center;justify-content:space-between;
+    position:relative;z-index:10;
+  }
+  .top-strip-text{font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:#0a0b14;}
+
+  /* ── HERO AREA ── */
+  .hero{
+    width:100%;padding:52px 40px 32px;
+    position:relative;z-index:10;
+    display:flex;flex-direction:column;align-items:center;
+    text-align:center;
+  }
+
+  .pre-label{
+    display:inline-flex;align-items:center;gap:8px;
+    background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.3);
+    border-radius:20px;padding:5px 14px;
+    font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;
+    color:#f5c842;margin-bottom:28px;
+  }
+  .pre-label-dot{width:6px;height:6px;border-radius:50%;background:#f5c842;animation:pulse 1.2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.8);}}
+
+  .main-title{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:148px;
+    line-height:.88;
+    letter-spacing:8px;
+    color:#f5c842;
+    text-shadow:0 0 80px rgba(245,200,66,.35),0 0 140px rgba(245,200,66,.15);
+    margin-bottom:4px;
+  }
+
+  .title-sub{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:26px;
+    letter-spacing:14px;
+    color:rgba(255,255,255,.45);
+    text-transform:uppercase;
+    margin-bottom:32px;
+  }
+
+  /* ── TAGLINE ── */
+  .tagline-wrap{
+    max-width:380px;
+    margin-bottom:40px;
+  }
+  .tagline{
+    font-size:22px;
+    font-weight:800;
+    line-height:1.25;
+    color:#fff;
+    margin-bottom:10px;
+  }
+  .tagline em{
+    font-style:normal;
+    color:#f5c842;
+    position:relative;
+  }
+  .tagline-sub{
+    font-size:13px;
+    font-weight:300;
+    color:rgba(255,255,255,.45);
+    line-height:1.8;
+    letter-spacing:.3px;
+  }
+
+  /* ── DIVIDER ── */
+  .divider{
+    width:60px;height:2px;
+    background:linear-gradient(90deg,transparent,#f5c842,transparent);
+    margin:0 auto 40px;
+  }
+
+  /* ── QR + DOWNLOAD BLOCK ── */
+  .download-block{
+    display:flex;
+    align-items:center;
+    gap:36px;
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:20px;
+    padding:28px 36px;
+    position:relative;z-index:10;
+    margin-bottom:40px;
+    width:calc(100% - 80px);
+    max-width:500px;
+  }
+
+  .qr-wrap{
+    flex-shrink:0;
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+  }
+  .qr-frame{
+    width:110px;height:110px;
+    background:#fff;
+    border-radius:12px;
+    padding:8px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #qrCanvas{display:block;}
+  .qr-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.35);}
+
+  .download-right{flex:1;}
+  .download-title{font-size:15px;font-weight:800;color:#fff;margin-bottom:4px;line-height:1.2;}
+  .download-sub{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:16px;font-weight:300;line-height:1.6;}
+
+  .store-btns{display:flex;flex-direction:column;gap:8px;}
+  .store-btn{
+    display:flex;align-items:center;gap:10px;
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:10px;padding:9px 14px;
+    transition:.15s;
+  }
+  .store-btn-ico{font-size:20px;line-height:1;flex-shrink:0;}
+  .store-btn-text{display:flex;flex-direction:column;}
+  .store-btn-pre{font-size:8px;font-weight:400;color:rgba(255,255,255,.45);letter-spacing:.5px;text-transform:uppercase;}
+  .store-btn-name{font-size:13px;font-weight:700;color:#fff;line-height:1.1;}
+
+  /* ── FEATURE PILLS ── */
+  .features-row{
+    display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
+    padding:0 40px;
+    position:relative;z-index:10;
+    margin-bottom:40px;
+  }
+  .feat-pill{
+    display:flex;align-items:center;gap:6px;
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.09);
+    border-radius:20px;padding:6px 14px;
+    font-size:10px;font-weight:600;color:rgba(255,255,255,.6);
+    letter-spacing:.3px;
+  }
+  .feat-pill-ico{font-size:12px;}
+
+  /* ── MYSTERY LINE ── */
+  .mystery-line{
+    position:relative;z-index:10;
+    text-align:center;
+    padding:0 40px;
+    margin-bottom:44px;
+  }
+  .mystery-text{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:38px;
+    letter-spacing:4px;
+    color:rgba(255,255,255,.08);
+    text-transform:uppercase;
+    line-height:1.1;
+  }
+  .mystery-text span{color:rgba(245,200,66,.25);}
+
+  /* ── BOTTOM BAR ── */
+  .bottom-bar{
+    width:100%;
+    background:rgba(245,200,66,.06);
+    border-top:1px solid rgba(245,200,66,.15);
+    padding:16px 40px;
+    display:flex;align-items:center;justify-content:space-between;
+    position:relative;z-index:10;
+    margin-top:auto;
+  }
+  .bottom-brand{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:22px;
+    letter-spacing:4px;
+    color:#f5c842;
+    opacity:.7;
+  }
+  .bottom-url{font-size:11px;color:rgba(255,255,255,.3);font-weight:600;letter-spacing:1px;}
+  .bottom-tagline{font-size:10px;color:rgba(255,255,255,.25);font-weight:300;letter-spacing:.5px;}
+
+  /* ── CORNER MARKS (print registration) ── */
+  .corner{position:absolute;width:16px;height:16px;z-index:20;opacity:.15;}
+  .corner-tl{top:8px;left:8px;border-top:1px solid #fff;border-left:1px solid #fff;}
+  .corner-tr{top:8px;right:8px;border-top:1px solid #fff;border-right:1px solid #fff;}
+  .corner-bl{bottom:8px;left:8px;border-bottom:1px solid #fff;border-left:1px solid #fff;}
+  .corner-br{bottom:8px;right:8px;border-bottom:1px solid #fff;border-right:1px solid #fff;}
+
+  /* ── HORIZONTAL RULE ── */
+  .h-rule{width:calc(100% - 80px);height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);position:relative;z-index:10;margin-bottom:28px;}
+
+  /* ── STATS ROW ── */
+  .stats-row{
+    display:flex;gap:0;width:calc(100% - 80px);
+    position:relative;z-index:10;
+    margin-bottom:36px;
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:14px;overflow:hidden;
+  }
+  .stat-cell{
+    flex:1;text-align:center;padding:18px 12px;
+    border-right:1px solid rgba(255,255,255,.07);
+  }
+  .stat-cell:last-child{border-right:none;}
+  .stat-num{font-family:'Bebas Neue',sans-serif;font-size:32px;color:#f5c842;letter-spacing:1px;line-height:1;}
+  .stat-lbl{font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-top:3px;}
+
+  /* ── PRINT STYLES ── */
+  @media print{
+    html,body{background:#0a0b14;margin:0;padding:0;}
+    .flyer{width:210mm;min-height:297mm;box-shadow:none;}
+    @page{size:A4;margin:0;}
+  }
+</style>
+</head>
+<body>
+
+<div class="flyer">
+  <!-- Background FX -->
+  <div class="glow-orb glow-1"></div>
+  <div class="glow-orb glow-2"></div>
+  <div class="glow-orb glow-3"></div>
+
+  <!-- Print corner marks -->
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+
+  <!-- Top strip -->
+  <div class="top-strip">
+    <span class="top-strip-text">Southeast Asia's Nightlife App</span>
+    <span class="top-strip-text">Free Download · No Sign-Up Required</span>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="pre-label">
+      <span class="pre-label-dot"></span>
+      Now Live in Your City
+    </div>
+
+    <div class="main-title">TONIGHT</div>
+    <div class="title-sub">Events &amp; Nightlife</div>
+
+    <div class="tagline-wrap">
+      <div class="tagline">
+        The night has a plan for you.<br>
+        Do you know <em>what it is?</em>
+      </div>
+      <div class="tagline-sub">
+        Every club, every event, every guestlist —<br>
+        all in one place. Don't miss what's happening tonight.
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-cell">
+      <div class="stat-num">500+</div>
+      <div class="stat-lbl">Events Listed</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">12</div>
+      <div class="stat-lbl">Cities</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">FREE</div>
+      <div class="stat-lbl">To Download</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">24/7</div>
+      <div class="stat-lbl">Updated Live</div>
+    </div>
+  </div>
+
+  <!-- Divider -->
+  <div class="divider"></div>
+
+  <!-- QR + Download -->
+  <div class="download-block">
+    <div class="qr-wrap">
+      <div class="qr-frame">
+        <canvas id="qrCanvas"></canvas>
+      </div>
+      <div class="qr-label">Scan to open</div>
+    </div>
+
+    <div class="download-right">
+      <div class="download-title">Download the app.<br>Own the night.</div>
+      <div class="download-sub">Available on App Store &amp; Google Play.<br>Open your camera &amp; scan the QR code.</div>
+      <div class="store-btns">
+        <div class="store-btn">
+          <div class="store-btn-ico">🍎</div>
+          <div class="store-btn-text">
+            <span class="store-btn-pre">Download on the</span>
+            <span class="store-btn-name">App Store</span>
+          </div>
+        </div>
+        <div class="store-btn">
+          <div class="store-btn-ico">▶</div>
+          <div class="store-btn-text">
+            <span class="store-btn-pre">Get it on</span>
+            <span class="store-btn-name">Google Play</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature pills -->
+  <div class="features-row">
+    <div class="feat-pill"><span class="feat-pill-ico">🎉</span> Events &amp; Parties</div>
+    <div class="feat-pill"><span class="feat-pill-ico">🏟️</span> Venue Guides</div>
+    <div class="feat-pill"><span class="feat-pill-ico">🎤</span> Live Artists</div>
+    <div class="feat-pill"><span class="feat-pill-ico">📅</span> Guestlists</div>
+    <div class="feat-pill"><span class="feat-pill-ico">🗓️</span> Calendar</div>
+    <div class="feat-pill"><span class="feat-pill-ico">📖</span> Nightlife Mag</div>
+  </div>
+
+  <div class="h-rule"></div>
+
+  <!-- Mystery watermark line -->
+  <div class="mystery-line">
+    <div class="mystery-text">
+      Bangkok · <span>Bali</span> · Kuala Lumpur · <span>Singapore</span> · Hanoi · <span>Ho Chi Minh</span>
+    </div>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="bottom-bar">
+    <div class="bottom-brand">TONIGHT</div>
+    <div class="bottom-tagline">Discover what's happening around you</div>
+    <div class="bottom-url">tonight.app</div>
+  </div>
+</div>
+
+<script>
+// Generate QR code pointing to the app URL
+// Replace this URL with your actual app/website URL before printing
+const APP_URL = 'https://tonight.app';
+
+QRCode.toCanvas(document.getElementById('qrCanvas'), APP_URL, {
+  width: 94,
+  margin: 0,
+  color: { dark: '#0a0b14', light: '#ffffff' },
+  errorCorrectionLevel: 'H'
+}, function(err){ if(err) console.warn('QR gen failed', err); });
+</script>
+</body>
+</html>

@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tonight — Business Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070810;
+  --green:#00d084;
+  --gold:#f5c842;
+  --red:#ff3b5c;
+  --purple:#8b5cf6;
+  --card:rgba(255,255,255,.05);
+  --border:rgba(255,255,255,.08);
+  --text:#ffffff;
+  --text2:#c8cdd8;
+  --text3:#6b7385;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;}
+
+/* ── DECK & SLIDES ── */
+.deck{position:relative;width:100%;height:100vh;}
+.slide{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:clamp(52px,7vh,72px) clamp(24px,5vw,80px);
+  text-align:center;overflow:hidden;overflow-y:auto;
+  opacity:0;pointer-events:none;
+  transition:opacity .45s ease,transform .45s ease;
+  transform:translateX(28px);
+}
+.slide.active{opacity:1;pointer-events:auto;transform:translateX(0);}
+.slide.exit{opacity:0;transform:translateX(-28px);pointer-events:none;}
+
+/* ── CHROME ── */
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--purple),var(--green),var(--gold));transition:width .4s ease;z-index:100;}
+.counter{position:fixed;bottom:26px;right:28px;font-size:11px;color:var(--text3);letter-spacing:.5px;z-index:100;font-weight:600;}
+.hint{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--text3);z-index:100;display:flex;align-items:center;gap:10px;}
+.hint span{display:inline-flex;align-items:center;justify-content:center;width:26px;height:18px;border:1px solid rgba(255,255,255,.1);border-radius:4px;font-size:10px;}
+.arr{position:fixed;top:50%;transform:translateY(-50%);z-index:100;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(255,255,255,.35);transition:.2s;}
+.arr:hover{background:rgba(255,255,255,.1);color:#fff;}
+.arr-prev{left:18px;}
+.arr-next{right:18px;}
+.dots{position:fixed;left:50%;bottom:48px;transform:translateX(-50%);display:flex;gap:5px;z-index:100;}
+.dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.15);transition:.3s;cursor:pointer;}
+.dot.on{background:var(--gold);width:18px;border-radius:3px;}
+
+/* ── SCROLLBAR ── */
+.slide::-webkit-scrollbar{width:3px;}
+.slide::-webkit-scrollbar-track{background:transparent;}
+.slide::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+
+/* ── VENUE SCENE (atmospheric club CSS) ── */
+.venue-bg{position:absolute;inset:0;background:linear-gradient(180deg,#050310 0%,#0d0820 35%,#08101e 70%,#050710 100%);overflow:hidden;}
+.beam{position:absolute;top:0;transform-origin:top center;pointer-events:none;}
+.light-source{position:absolute;top:-4px;border-radius:50%;filter:blur(14px);pointer-events:none;}
+.floor-glow{position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);border-radius:50%;filter:blur(60px);pointer-events:none;pointer-events:none;}
+.crowd-line{position:absolute;bottom:0;left:0;right:0;display:flex;align-items:flex-end;justify-content:center;gap:2px;padding-bottom:0;font-size:clamp(22px,3.5vw,34px);filter:brightness(0) invert(1) opacity(.1);pointer-events:none;line-height:1;}
+
+/* ── SHARED TYPE ── */
+.label{font-size:clamp(10px,1.1vw,11px);font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:clamp(10px,1.3vh,16px);}
+.label.gold{color:var(--gold);}
+.label.red{color:var(--red);}
+.label.dim{color:var(--text3);}
+.label.purple{color:var(--purple);}
+.title{font-size:clamp(26px,4vw,52px);font-weight:800;line-height:1.1;margin-bottom:clamp(8px,1.2vh,14px);letter-spacing:-.3px;}
+.title .g{color:var(--green);}
+.title .o{color:var(--gold);}
+.title .r{color:var(--red);}
+.title .p{color:var(--purple);}
+.sub{font-size:clamp(13px,1.6vw,17px);color:var(--text2);font-weight:300;line-height:1.7;max-width:580px;}
+.big-logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(70px,14vw,170px);letter-spacing:8px;background:linear-gradient(135deg,#fff 30%,rgba(255,255,255,.25));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:8px;}
+
+/* ── TWO COL ── */
+.two-col{display:flex;gap:clamp(20px,3.5vw,56px);align-items:center;max-width:960px;width:100%;text-align:left;margin-top:clamp(16px,2vh,28px);}
+.col-l{flex:1;max-width:400px;}
+.col-r{flex:1;display:flex;justify-content:center;}
+
+/* ── PHONE MOCKUP ── */
+.phone{width:clamp(130px,16vw,190px);flex-shrink:0;position:relative;}
+.phone-body{background:linear-gradient(160deg,#2d2d30,#1c1c1e);border-radius:clamp(28px,3.5vw,40px);padding:clamp(3px,.4vw,5px);box-shadow:0 32px 64px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.07),inset 0 1px 0 rgba(255,255,255,.1);}
+.phone-screen{background:#000;border-radius:clamp(24px,3vw,36px);overflow:hidden;position:relative;}
+.phone-notch{width:clamp(44px,5.5vw,60px);height:clamp(10px,1.3vw,14px);background:#000;border-radius:0 0 10px 10px;margin:0 auto;position:relative;z-index:2;}
+.phone-inner{background:#0a0b14;padding-top:2px;}
+/* App UI inside phone */
+.app-topbar{background:rgba(255,255,255,.04);padding:6px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.06);}
+.app-logo-sm{font-family:'Bebas Neue',sans-serif;font-size:clamp(12px,1.5vw,16px);color:var(--gold);letter-spacing:2px;}
+.app-city-sm{font-size:clamp(7px,.9vw,9px);color:var(--text3);font-weight:600;}
+.app-icon-sm{font-size:clamp(10px,1.2vw,12px);opacity:.5;}
+.app-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);}
+.app-tab{flex:1;text-align:center;padding:5px 0;font-size:clamp(6px,.8vw,8px);font-weight:700;letter-spacing:.5px;color:var(--text3);cursor:pointer;}
+.app-tab.on{color:var(--gold);border-bottom:2px solid var(--gold);}
+.event-mini{margin:clamp(4px,.6vw,6px) clamp(6px,.8vw,8px);border-radius:clamp(8px,1vw,10px);overflow:hidden;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);}
+.event-mini-img{height:clamp(28px,3.5vw,40px);display:flex;align-items:center;justify-content:center;font-size:clamp(12px,1.5vw,16px);font-weight:700;letter-spacing:1px;font-family:'Bebas Neue',sans-serif;}
+.event-mini-info{padding:clamp(4px,.6vw,6px) clamp(6px,.8vw,8px);}
+.event-mini-title{font-size:clamp(7px,.9vw,9px);font-weight:700;color:#fff;margin-bottom:2px;line-height:1.3;}
+.event-mini-sub{font-size:clamp(6px,.75vw,8px);color:var(--text3);}
+.event-mini-badge{display:inline-block;font-size:clamp(5px,.65vw,7px);font-weight:800;padding:1px 5px;border-radius:3px;margin-top:3px;}
+.phone-tabbar{display:flex;border-top:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.5);}
+.phone-tab{flex:1;padding:clamp(5px,.7vh,7px) 0;text-align:center;font-size:clamp(12px,1.5vw,16px);}
+
+/* ── LOCK SCREEN NOTIFICATION ── */
+.lockscreen{background:linear-gradient(180deg,#0a0818 0%,#0d0d1e 100%);padding:clamp(8px,1vh,12px);}
+.lock-time{font-family:'Bebas Neue',sans-serif;font-size:clamp(26px,3.5vw,40px);color:#fff;text-align:center;letter-spacing:3px;margin-bottom:clamp(4px,.6vh,8px);}
+.lock-date{font-size:clamp(7px,.9vw,9px);color:rgba(255,255,255,.5);text-align:center;margin-bottom:clamp(8px,1vh,12px);}
+.lock-notif{background:rgba(255,255,255,.12);backdrop-filter:blur(10px);border-radius:clamp(10px,1.3vw,14px);padding:clamp(8px,1vh,10px) clamp(10px,1.3vw,12px);display:flex;gap:8px;align-items:flex-start;border:1px solid rgba(255,255,255,.14);}
+.lock-app-icon{width:clamp(24px,3vw,32px);height:clamp(24px,3vw,32px);border-radius:clamp(6px,.8vw,8px);background:linear-gradient(135deg,#1a1b2e,#0a0b14);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:clamp(8px,1vw,11px);color:var(--gold);flex-shrink:0;}
+.lock-content{flex:1;}
+.lock-app-name{font-size:clamp(7px,.85vw,9px);font-weight:700;color:rgba(255,255,255,.5);margin-bottom:2px;}
+.lock-title{font-size:clamp(8px,1vw,10px);font-weight:700;line-height:1.35;}
+.lock-msg{font-size:clamp(7px,.85vw,9px);color:rgba(255,255,255,.45);line-height:1.3;margin-top:2px;}
+
+/* ── LAPTOP MOCKUP ── */
+.laptop{width:100%;max-width:clamp(280px,40vw,460px);}
+.laptop-lid{background:linear-gradient(160deg,#2d2d30,#1c1c1e);border-radius:10px 10px 0 0;padding:5px 5px 0;border:1px solid rgba(255,255,255,.09);border-bottom:none;}
+.laptop-cam{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.15);margin:3px auto 5px;display:block;}
+.laptop-screen{background:#0a0b14;border-radius:4px;overflow:hidden;padding:clamp(8px,1vw,12px);min-height:clamp(140px,18vh,210px);}
+.laptop-base{height:clamp(10px,1.5vw,16px);background:linear-gradient(180deg,#1c1c1e,#111114);border-radius:0 0 8px 8px;border:1px solid rgba(255,255,255,.07);border-top:none;position:relative;}
+.laptop-base::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:3px;background:rgba(255,255,255,.07);border-radius:2px;}
+/* Laptop screen content */
+.dash-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:clamp(6px,.8vh,10px);padding-bottom:clamp(6px,.8vh,8px);border-bottom:1px solid var(--border);}
+.dash-logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(10px,1.2vw,13px);color:var(--gold);letter-spacing:2px;}
+.dash-venue{font-size:clamp(7px,.85vw,9px);color:var(--text2);font-weight:600;}
+.dash-stat-row{display:flex;gap:clamp(4px,.6vw,8px);margin-bottom:clamp(6px,.8vh,10px);}
+.dash-stat{flex:1;background:rgba(255,255,255,.04);border-radius:6px;padding:clamp(4px,.6vh,7px) clamp(6px,.8vw,10px);border:1px solid rgba(255,255,255,.06);}
+.dash-stat-n{font-size:clamp(12px,1.5vw,16px);font-weight:800;color:var(--green);line-height:1;}
+.dash-stat-l{font-size:clamp(6px,.75vw,8px);color:var(--text3);margin-top:2px;}
+.dash-event-row{display:flex;align-items:center;gap:6px;padding:clamp(4px,.5vh,6px) clamp(6px,.8vw,8px);border-radius:5px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);margin-bottom:4px;}
+.dash-ev-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.dash-ev-title{font-size:clamp(7px,.85vw,9px);font-weight:700;color:#fff;flex:1;}
+.dash-ev-badge{font-size:clamp(5px,.65vw,7px);font-weight:800;padding:1px 6px;border-radius:3px;}
+.dash-actions{display:flex;gap:4px;margin-top:clamp(6px,.8vh,10px);}
+.dash-btn{flex:1;padding:clamp(4px,.5vh,6px);border-radius:5px;font-size:clamp(7px,.85vw,9px);font-weight:700;text-align:center;cursor:pointer;}
+.dash-btn.g{background:rgba(0,208,132,.12);color:var(--green);border:1px solid rgba(0,208,132,.2);}
+.dash-btn.o{background:rgba(245,200,66,.1);color:var(--gold);border:1px solid rgba(245,200,66,.18);}
+
+/* ── STAT PILLS ── */
+.stat-row{display:flex;gap:clamp(8px,1.2vw,16px);flex-wrap:wrap;justify-content:center;}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:clamp(14px,1.8vh,22px) clamp(18px,2.2vw,32px);min-width:120px;text-align:center;}
+.sc-n{font-size:clamp(26px,3.5vw,44px);font-weight:800;color:var(--gold);line-height:1;margin-bottom:4px;}
+.sc-n.g{color:var(--green);}
+.sc-n.w{color:#fff;}
+.sc-l{font-size:clamp(9px,1vw,11px);color:var(--text3);font-weight:500;letter-spacing:.3px;}
+
+/* ── PAIN CARDS ── */
+.pain-row{display:flex;gap:clamp(8px,1.2vw,14px);margin-top:clamp(20px,2.5vh,30px);flex-wrap:wrap;justify-content:center;max-width:820px;}
+.pc{background:rgba(255,59,92,.05);border:1px solid rgba(255,59,92,.16);border-radius:14px;padding:clamp(16px,2vh,22px) clamp(16px,2vw,22px);flex:1;min-width:180px;text-align:left;position:relative;overflow:hidden;}
+.pc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),transparent);}
+.pc-icon{font-size:clamp(20px,2.5vw,26px);margin-bottom:8px;}
+.pc h4{font-size:clamp(12px,1.4vw,14px);font-weight:700;color:#fff;margin-bottom:5px;}
+.pc p{font-size:clamp(10px,1.1vw,12px);color:var(--text3);line-height:1.6;}
+.pc-tag{display:inline-block;margin-top:9px;font-size:clamp(9px,1vw,11px);font-weight:700;color:#ff8099;background:rgba(255,59,92,.08);border:1px solid rgba(255,59,92,.14);border-radius:5px;padding:2px 9px;}
+
+/* ── 3-STEP FLOW ── */
+.flow{display:flex;align-items:stretch;gap:0;max-width:880px;width:100%;margin-top:clamp(20px,2.5vh,32px);}
+.flow-step{flex:1;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:clamp(18px,2.2vh,26px) clamp(14px,1.8vw,22px);text-align:center;}
+.flow-step.g{background:rgba(0,208,132,.05);border-color:rgba(0,208,132,.2);}
+.flow-arr{display:flex;align-items:center;color:var(--text3);font-size:clamp(18px,2.2vw,24px);padding:0 clamp(6px,.9vw,14px);flex-shrink:0;}
+.flow-icon{font-size:clamp(22px,2.8vw,32px);margin-bottom:8px;}
+.flow-num{font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,5vw,60px);line-height:1;margin-bottom:5px;}
+.flow-title{font-size:clamp(13px,1.5vw,16px);font-weight:700;color:#fff;margin-bottom:6px;line-height:1.25;}
+.flow-body{font-size:clamp(10px,1.1vw,12px);color:var(--text3);line-height:1.6;}
+
+/* ── QR BENEFITS ── */
+.qr-list{display:flex;flex-direction:column;gap:clamp(8px,1.1vh,13px);}
+.qr-b{display:flex;gap:clamp(10px,1.3vw,14px);align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:11px;padding:clamp(10px,1.3vh,14px) clamp(12px,1.6vw,16px);text-align:left;}
+.qr-b-icon{font-size:clamp(17px,2.1vw,21px);flex-shrink:0;}
+.qr-b-title{font-size:clamp(11px,1.3vw,13px);font-weight:700;color:#fff;margin-bottom:2px;}
+.qr-b-desc{font-size:clamp(9px,1.1vw,11px);color:var(--text3);line-height:1.5;}
+
+/* ── AUTOMATION ITEMS ── */
+.auto-list{display:flex;flex-direction:column;gap:clamp(8px,1.1vh,13px);width:100%;max-width:580px;margin-top:clamp(18px,2.2vh,28px);}
+.auto-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:clamp(12px,1.5vh,18px) clamp(14px,1.8vw,20px);display:flex;gap:clamp(12px,1.5vw,18px);align-items:flex-start;text-align:left;}
+.auto-icon{font-size:clamp(18px,2.2vw,24px);flex-shrink:0;}
+.auto-title{font-size:clamp(12px,1.4vw,14px);font-weight:700;color:#fff;margin-bottom:3px;}
+.auto-desc{font-size:clamp(10px,1.1vw,12px);color:var(--text3);line-height:1.5;}
+.auto-eg{margin-top:5px;font-size:clamp(9px,1vw,11px);color:rgba(255,255,255,.32);font-style:italic;}
+
+/* ── ROUTINE CARDS ── */
+.rt-row{display:flex;gap:clamp(8px,1.2vw,14px);margin-top:clamp(18px,2.2vh,28px);max-width:840px;width:100%;}
+.rt{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:clamp(16px,2vh,24px);flex:1;text-align:left;}
+.rt.gold{border-color:rgba(245,200,66,.2);background:rgba(245,200,66,.04);}
+.rt.green{border-color:rgba(0,208,132,.17);background:rgba(0,208,132,.04);}
+.rt-day{font-size:clamp(8px,.9vw,10px);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:7px;}
+.rt.gold .rt-day{color:var(--gold);}
+.rt.green .rt-day{color:var(--green);}
+.rt-time{font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,4.5vw,54px);line-height:1;margin-bottom:3px;}
+.rt.gold .rt-time{color:var(--gold);}
+.rt.green .rt-time{color:var(--green);}
+.rt-unit{font-size:clamp(10px,1.1vw,12px);color:var(--text3);margin-bottom:10px;}
+.rt-label{font-size:clamp(12px,1.4vw,14px);font-weight:700;color:#fff;margin-bottom:5px;}
+.rt-body{font-size:clamp(9px,1vw,11px);color:var(--text3);line-height:1.6;}
+
+/* ── TESTIMONIALS ── */
+.hero-quote-box{max-width:680px;text-align:center;}
+.hero-quote{font-size:clamp(16px,2.4vw,28px);font-weight:700;line-height:1.45;color:#fff;font-style:italic;margin-bottom:clamp(12px,1.5vh,18px);padding:0 clamp(10px,2vw,24px);}
+.hero-result{display:inline-flex;align-items:center;gap:7px;font-size:clamp(12px,1.5vw,15px);font-weight:800;color:var(--green);background:rgba(0,208,132,.08);border:1px solid rgba(0,208,132,.18);border-radius:8px;padding:5px 16px;margin-bottom:clamp(10px,1.2vh,16px);}
+.hero-attr{font-size:clamp(11px,1.3vw,13px);font-weight:700;color:#fff;margin-top:clamp(10px,1.3vh,16px);}
+.hero-venue{font-size:clamp(9px,1.1vw,11px);color:var(--text3);margin-top:2px;}
+.testi-row{display:flex;gap:clamp(8px,1.2vw,14px);margin-top:clamp(14px,1.8vh,22px);max-width:820px;width:100%;}
+.testi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:clamp(14px,1.8vh,20px);flex:1;text-align:left;}
+.testi-res{display:inline-block;font-size:clamp(9px,1vw,11px);font-weight:700;color:var(--green);background:rgba(0,208,132,.07);border:1px solid rgba(0,208,132,.13);border-radius:4px;padding:2px 7px;margin-bottom:7px;}
+.testi-text{font-size:clamp(10px,1.1vw,12px);color:var(--text2);line-height:1.6;font-style:italic;margin-bottom:9px;}
+.testi-name{font-size:clamp(11px,1.2vw,13px);font-weight:700;color:#fff;}
+.testi-venue-l{font-size:clamp(9px,1vw,10px);color:var(--text3);margin-top:1px;}
+
+/* ── PRICING ── */
+.pkg-row{display:flex;gap:clamp(8px,1.2vw,14px);margin-top:clamp(16px,2vh,24px);max-width:840px;width:100%;}
+.pkg{flex:1;border-radius:18px;padding:clamp(16px,2vh,24px) clamp(14px,1.8vw,22px);border:1px solid var(--border);background:var(--card);position:relative;overflow:hidden;text-align:left;}
+.pkg.feat{background:rgba(0,208,132,.05);border-color:rgba(0,208,132,.28);}
+.pkg-badge{position:absolute;top:12px;right:-22px;background:var(--green);color:#000;font-size:7px;font-weight:800;padding:3px 32px;transform:rotate(35deg);letter-spacing:.5px;}
+.pkg-name{font-size:clamp(8px,.9vw,10px);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.pkg-price{font-family:'Bebas Neue',sans-serif;font-size:clamp(30px,4vw,46px);line-height:1;margin-bottom:2px;}
+.pkg-mo{font-size:clamp(11px,1.2vw,13px);font-weight:300;color:var(--text3);font-family:'Plus Jakarta Sans',sans-serif;}
+.pkg-period{font-size:clamp(9px,1vw,11px);color:var(--text3);margin-bottom:clamp(10px,1.3vh,16px);}
+.pkg-div{height:1px;background:var(--border);margin-bottom:clamp(10px,1.3vh,16px);}
+.pkg-item{display:flex;gap:7px;margin-bottom:clamp(5px,.6vh,8px);font-size:clamp(10px,1.1vw,12px);color:var(--text2);}
+.pkg-chk{color:var(--green);flex-shrink:0;font-weight:700;}
+.pkg-chk.gold{color:var(--gold);}
+.pkg-btn{width:100%;padding:clamp(9px,1.1vh,12px);border-radius:9px;font-size:clamp(11px,1.2vw,13px);font-weight:700;font-family:inherit;border:none;cursor:pointer;margin-top:clamp(10px,1.3vh,16px);transition:.2s;}
+.pkg-btn.green{background:var(--green);color:#000;}
+.pkg-btn.green:hover{opacity:.87;}
+.pkg-btn.outline{background:transparent;color:var(--text2);border:1px solid var(--border);}
+.pkg-btn.outline:hover{border-color:rgba(255,255,255,.2);color:#fff;}
+.pkg-btn.gold{background:transparent;color:var(--gold);border:1px solid rgba(245,200,66,.22);}
+
+/* ── CTA ── */
+.cta-pill{display:inline-flex;align-items:center;gap:9px;background:rgba(255,59,92,.08);border:1px solid rgba(255,59,92,.18);border-radius:28px;padding:7px 20px;margin-bottom:clamp(14px,1.8vh,22px);}
+.cta-n{font-family:'Bebas Neue',sans-serif;font-size:clamp(20px,2.5vw,26px);color:var(--red);line-height:1;}
+.cta-t{font-size:clamp(10px,1.2vw,12px);font-weight:600;color:rgba(255,255,255,.5);}
+.cta-btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--green),#00b070);color:#000;font-weight:800;font-size:clamp(14px,1.6vw,17px);padding:clamp(13px,1.6vh,17px) clamp(30px,3.8vw,46px);border-radius:100px;transition:.2s;text-decoration:none;margin-top:clamp(16px,2vh,26px);}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 14px 44px rgba(0,208,132,.3);}
+.cta-note{font-size:clamp(9px,1.1vw,11px);color:var(--text3);margin-top:clamp(10px,1.3vh,16px);}
+.city-row{display:flex;gap:clamp(12px,1.8vw,22px);justify-content:center;flex-wrap:wrap;margin-top:clamp(14px,1.8vh,22px);}
+.city{font-size:clamp(9px,1.1vw,11px);color:var(--text3);display:flex;align-items:center;gap:4px;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  .slide{padding:52px 18px 68px;}
+  .two-col{flex-direction:column;align-items:flex-start;}
+  .col-r{width:100%;justify-content:flex-start;}
+  .flow{flex-direction:column;}
+  .flow-arr{transform:rotate(90deg);}
+  .pain-row,.testi-row,.rt-row,.pkg-row{flex-direction:column;}
+  .arr{display:none;}
+  .hint{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="progress" id="prog"></div>
+<div class="dots" id="dots"></div>
+<div class="counter" id="counter"></div>
+<div class="hint"><span>←</span> navigate <span>→</span></div>
+<button class="arr arr-prev" onclick="go(-1)">‹</button>
+<button class="arr arr-next" onclick="go(1)">›</button>
+
+<div class="deck" id="deck">
+
+<!-- ══════════════════════════════════════
+     SLIDE 1 — COVER (venue atmosphere)
+══════════════════════════════════════ -->
+<div class="slide active" id="s0">
+  <!-- Club atmosphere background -->
+  <div class="venue-bg">
+    <!-- Light beams from the ceiling -->
+    <div class="beam" style="left:6%;width:clamp(40px,6vw,80px);height:65%;background:linear-gradient(180deg,rgba(139,92,246,.55),transparent);transform:rotate(-22deg)"></div>
+    <div class="beam" style="left:20%;width:clamp(30px,4.5vw,60px);height:58%;background:linear-gradient(180deg,rgba(0,208,132,.4),transparent);transform:rotate(-9deg)"></div>
+    <div class="beam" style="left:40%;width:clamp(25px,3.5vw,50px);height:50%;background:linear-gradient(180deg,rgba(245,200,66,.3),transparent);transform:rotate(0deg)"></div>
+    <div class="beam" style="right:20%;width:clamp(30px,4.5vw,60px);height:58%;background:linear-gradient(180deg,rgba(255,59,92,.4),transparent);transform:rotate(9deg)"></div>
+    <div class="beam" style="right:5%;width:clamp(35px,5vw,70px);height:62%;background:linear-gradient(180deg,rgba(139,92,246,.45),transparent);transform:rotate(20deg)"></div>
+    <!-- Light sources at top -->
+    <div class="light-source" style="left:6%;width:clamp(40px,5vw,64px);height:clamp(20px,2.5vh,32px);background:rgba(139,92,246,.9);opacity:.8"></div>
+    <div class="light-source" style="left:20%;width:clamp(30px,4vw,50px);height:clamp(16px,2vh,24px);background:rgba(0,208,132,.9);opacity:.7"></div>
+    <div class="light-source" style="left:40%;width:clamp(24px,3.5vw,44px);height:clamp(14px,1.8vh,20px);background:rgba(245,200,66,.9);opacity:.6"></div>
+    <div class="light-source" style="right:20%;width:clamp(30px,4vw,50px);height:clamp(16px,2vh,24px);background:rgba(255,59,92,.9);opacity:.7"></div>
+    <div class="light-source" style="right:5%;width:clamp(36px,4.5vw,56px);height:clamp(18px,2.2vh,28px);background:rgba(139,92,246,.9);opacity:.75"></div>
+    <!-- Floor glow -->
+    <div class="floor-glow" style="width:70%;height:clamp(60px,8vh,100px);background:rgba(139,92,246,.18)"></div>
+    <!-- Crowd silhouette -->
+    <div class="crowd-line">🧍💃🕺🧍💃🕺🧍💃🕺🧍💃🕺🧍💃🕺🧍💃🕺🧍</div>
+  </div>
+  <!-- Content -->
+  <div style="position:relative;z-index:1;text-align:center">
+    <div class="label dim" style="margin-bottom:clamp(6px,.8vh,10px)">The Tonight Business Guide</div>
+    <div class="big-logo">Tonight</div>
+    <div style="font-size:clamp(14px,1.9vw,20px);font-weight:300;color:rgba(255,255,255,.7);letter-spacing:clamp(2px,.8vw,6px);text-transform:uppercase;margin-bottom:clamp(18px,2.2vh,28px)">Fill Your Venue. Every Night.</div>
+    <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(0,208,132,.1);border:1px solid rgba(0,208,132,.22);border-radius:28px;padding:7px 20px;font-size:clamp(11px,1.2vw,13px);color:var(--green);font-weight:600;letter-spacing:.5px">
+      <span style="width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px rgba(0,208,132,.8);animation:pulse 2s infinite;flex-shrink:0"></span>
+      Ho Chi Minh City · Hanoi · Da Nang
+    </div>
+  </div>
+  <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}</style>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 2 — THE PROBLEM
+══════════════════════════════════════ -->
+<div class="slide" id="s1">
+  <!-- Subtle venue bg for problem slide (darker, emptier feeling) -->
+  <div class="venue-bg" style="opacity:.5">
+    <div class="beam" style="left:50%;width:clamp(30px,4vw,50px);height:40%;background:linear-gradient(180deg,rgba(255,59,92,.3),transparent);transform:rotate(0deg);transform-origin:top center"></div>
+    <div class="light-source" style="left:50%;transform:translateX(-50%);width:clamp(30px,3.5vw,46px);height:clamp(14px,1.8vh,20px);background:rgba(255,59,92,.9);opacity:.6"></div>
+  </div>
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%">
+    <div class="label red">The Real Problem</div>
+    <h2 class="title" style="max-width:640px">Your venue is great.<br>But tonight, <span class="r">three tables are empty.</span></h2>
+    <p class="sub" style="margin-top:clamp(8px,1vh,12px)">Not because people don't want to go out. Because they can't find you.</p>
+    <div class="pain-row">
+      <div class="pc">
+        <div class="pc-icon">📉</div>
+        <h4>Empty mid-week</h4>
+        <p>Full rent. Full staff. Three tables occupied. Every empty seat is money you've already spent.</p>
+        <div class="pc-tag">₫30M lost / month</div>
+      </div>
+      <div class="pc">
+        <div class="pc-icon">📢</div>
+        <h4>Instagram reaches nobody</h4>
+        <p>Your post shows to 3% of followers. You pay to boost. Still zero walk-ins. Zero ROI.</p>
+        <div class="pc-tag">Measurable ROI: ₫0</div>
+      </div>
+      <div class="pc">
+        <div class="pc-icon">🔇</div>
+        <h4>No one knows your schedule</h4>
+        <p>If people can't see what's on next weekend, they plan around someone who tells them.</p>
+        <div class="pc-tag">2.4× fewer bookings</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 3 — WHAT TONIGHT IS (phone mockup)
+══════════════════════════════════════ -->
+<div class="slide" id="s2">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 80% 50%,rgba(0,208,132,.07),transparent)"></div>
+  <div class="two-col" style="margin:0;max-width:900px;position:relative;z-index:1">
+    <div class="col-l">
+      <div class="label">What Tonight Is</div>
+      <h2 class="title" style="font-size:clamp(24px,3.6vw,46px)">847 people in your city<br>deciding where to go.<br><span class="g">Make sure they find you.</span></h2>
+      <p class="sub" style="margin-top:clamp(10px,1.2vh,16px)">Tonight is a nightlife discovery app. Users open it specifically to decide where to go out tonight. Not to scroll. Not to be entertained. <strong style="color:#fff">To decide.</strong></p>
+      <div class="stat-row" style="justify-content:flex-start;margin-top:clamp(16px,2vh,24px)">
+        <div class="sc"><div class="sc-n g">847</div><div class="sc-l">Active users / city</div></div>
+        <div class="sc"><div class="sc-n">68%</div><div class="sc-l">Push open rate</div></div>
+        <div class="sc"><div class="sc-n g">₫0</div><div class="sc-l">Cost per push</div></div>
+      </div>
+    </div>
+    <div class="col-r">
+      <!-- Phone mockup showing Tonight app -->
+      <div class="phone">
+        <div class="phone-body">
+          <div class="phone-screen">
+            <div class="phone-notch"></div>
+            <div class="phone-inner">
+              <div class="app-topbar">
+                <span class="app-logo-sm">Tonight</span>
+                <span class="app-city-sm">📍 HCMC</span>
+                <span class="app-icon-sm">🔔</span>
+              </div>
+              <div class="app-tabs">
+                <div class="app-tab on">TODAY</div>
+                <div class="app-tab">WEEKEND</div>
+                <div class="app-tab">CALENDAR</div>
+              </div>
+              <!-- Event cards inside phone -->
+              <div class="event-mini">
+                <div class="event-mini-img" style="background:linear-gradient(135deg,#1a0a35,#0d1530);color:var(--purple)">🎧 TECHNO</div>
+                <div class="event-mini-info">
+                  <div class="event-mini-title">Subculture Saigon — The Vault</div>
+                  <div class="event-mini-sub">Tonight · 10PM · District 1</div>
+                  <div class="event-mini-badge" style="background:rgba(255,59,92,.12);color:var(--red)">⚡ FREE ENTRY BEFORE 11PM</div>
+                </div>
+              </div>
+              <div class="event-mini">
+                <div class="event-mini-img" style="background:linear-gradient(135deg,#0a2820,#0d1a10);color:var(--green)">🥂 ROOFTOP</div>
+                <div class="event-mini-info">
+                  <div class="event-mini-title">Rooftop Happy Hour · Skybar</div>
+                  <div class="event-mini-sub">8PM · Da Nang</div>
+                  <div class="event-mini-badge" style="background:rgba(245,200,66,.1);color:var(--gold)">2-for-1 cocktails until 9PM</div>
+                </div>
+              </div>
+              <div class="event-mini">
+                <div class="event-mini-img" style="background:linear-gradient(135deg,#1a1a08,#0d1000);color:var(--gold)">🎵 DJ NIGHT</div>
+                <div class="event-mini-info">
+                  <div class="event-mini-title">DJ Alex — Thursday Night</div>
+                  <div class="event-mini-sub">Lush Club · Thu 10PM</div>
+                  <div class="event-mini-badge" style="background:rgba(0,208,132,.1);color:var(--green)">Guestlist Open</div>
+                </div>
+              </div>
+              <div class="phone-tabbar">
+                <div class="phone-tab">🏠</div>
+                <div class="phone-tab">🔍</div>
+                <div class="phone-tab" style="color:var(--gold)">📅</div>
+                <div class="phone-tab">❤️</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 4 — THE 3 MOVES
+══════════════════════════════════════ -->
+<div class="slide" id="s3">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 50% 60% at 50% 100%,rgba(0,208,132,.06),transparent)"></div>
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%">
+    <div class="label">The Whole Playbook</div>
+    <h2 class="title">Three moves. <span class="g">That's it.</span></h2>
+    <p class="sub" style="margin:clamp(6px,.8vh,10px) auto clamp(0px,0vh,0px)">No agency. No ad spend. Three things done consistently — and your venue fills itself.</p>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-icon">📋</div>
+        <div class="flow-num" style="color:rgba(255,255,255,.18)">01</div>
+        <div class="flow-title">Post your events every Monday</div>
+        <div class="flow-body">10 minutes. Your full week is live and searchable for 847 people asking "what's on tonight?"</div>
+      </div>
+      <div class="flow-arr">→</div>
+      <div class="flow-step">
+        <div class="flow-icon">📲</div>
+        <div class="flow-num" style="color:var(--gold)">02</div>
+        <div class="flow-title">They find you and follow</div>
+        <div class="flow-body">Via Tonight search and QR codes at your tables. One tap — they follow you forever.</div>
+      </div>
+      <div class="flow-arr">→</div>
+      <div class="flow-step g">
+        <div class="flow-icon">♾️</div>
+        <div class="flow-num" style="color:var(--green)">03</div>
+        <div class="flow-title">Tonight keeps them coming back</div>
+        <div class="flow-body">Push alerts. Weekly emails. Calendar reminders. All automatic. All free. Forever.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 5 — QR TRICK + PHONE
+══════════════════════════════════════ -->
+<div class="slide" id="s4">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 50% 60% at 20% 50%,rgba(245,200,66,.06),transparent)"></div>
+  <div class="two-col" style="margin:0;max-width:900px;position:relative;z-index:1">
+    <div class="col-l">
+      <div class="label gold">Day One Smart Move</div>
+      <h2 class="title" style="font-size:clamp(24px,3.5vw,44px)">Your first 100 followers<br><span class="o">are already in your venue.</span></h2>
+      <p class="sub" style="margin-top:clamp(10px,1.2vh,14px)">They're sitting at your tables right now. They just don't follow you yet.</p>
+      <p class="sub" style="margin-top:9px">Print your Tonight QR code. Put it on <strong style="color:#fff">every table, every menu, the bar and the door.</strong> They scan → Tonight opens → they tap Follow. Done.</p>
+      <div style="margin-top:clamp(14px,1.8vh,20px);padding:clamp(10px,1.3vh,14px) clamp(14px,1.8vw,18px);background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.14);border-radius:9px;font-size:clamp(11px,1.3vw,13px);font-weight:700;color:var(--gold);line-height:1.5">
+        💡 You print once. Tonight follows up forever.
+      </div>
+    </div>
+    <div class="col-r" style="flex-direction:column;gap:clamp(6px,.8vh,10px);align-items:flex-start;width:100%">
+      <!-- Phone showing venue page with follow button -->
+      <div class="phone" style="width:clamp(120px,14vw,170px);margin-bottom:clamp(8px,1vh,12px)">
+        <div class="phone-body">
+          <div class="phone-screen">
+            <div class="phone-notch"></div>
+            <div class="phone-inner">
+              <div class="app-topbar">
+                <span style="font-size:clamp(7px,.85vw,9px);color:var(--text3)">← Back</span>
+                <span class="app-logo-sm">Tonight</span>
+                <span class="app-icon-sm">⋯</span>
+              </div>
+              <!-- Venue banner -->
+              <div style="height:clamp(30px,4vh,46px);background:linear-gradient(135deg,#1a0a35,#0a1530);display:flex;align-items:center;justify-content:center;font-size:clamp(14px,1.8vw,20px)">🎧</div>
+              <!-- Venue info -->
+              <div style="padding:clamp(6px,.8vw,9px) clamp(8px,1vw,10px)">
+                <div style="font-size:clamp(9px,1.1vw,11px);font-weight:800;color:#fff;margin-bottom:2px">Lush Nightclub</div>
+                <div style="font-size:clamp(7px,.85vw,8px);color:var(--text3);margin-bottom:clamp(6px,.8vh,9px)">District 1 · Ho Chi Minh City · Techno · House</div>
+                <!-- Follow button -->
+                <div style="background:var(--green);border-radius:7px;padding:clamp(5px,.7vh,7px);text-align:center;font-size:clamp(8px,1vw,10px);font-weight:800;color:#000">+ Follow Venue</div>
+                <div style="margin-top:clamp(4px,.5vh,6px);background:rgba(255,255,255,.04);border-radius:7px;padding:clamp(4px,.5vh,6px);text-align:center;font-size:clamp(7px,.85vw,9px);font-weight:700;color:var(--text3)">📅 View Events</div>
+                <div style="margin-top:clamp(5px,.6vh,7px);font-size:clamp(6px,.75vw,8px);color:rgba(0,208,132,.7);font-weight:700">247 followers · 12 events this month</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Benefits list -->
+      <div class="qr-list" style="width:100%">
+        <div class="qr-b" style="background:rgba(0,208,132,.04);border-color:rgba(0,208,132,.14)">
+          <div class="qr-b-icon">📲</div>
+          <div><div class="qr-b-title" style="color:var(--green)">One scan = following forever</div><div class="qr-b-desc">Push alerts, weekly emails, and calendar reminders go out automatically to every follower — every time you post.</div></div>
+        </div>
+        <div class="qr-b">
+          <div class="qr-b-icon">🔁</div>
+          <div><div class="qr-b-title">Your regulars become your audience</div><div class="qr-b-desc">Turn one-time visitors into people who see every deal you post and plan their nights around your schedule.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 6 — POST EVENTS + LAPTOP + PHONE
+══════════════════════════════════════ -->
+<div class="slide" id="s5">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 50% 60% at 80% 50%,rgba(139,92,246,.07),transparent)"></div>
+  <div class="two-col" style="margin:0;max-width:960px;position:relative;z-index:1">
+    <div class="col-l">
+      <div class="label purple">Post & Push</div>
+      <h2 class="title" style="font-size:clamp(24px,3.5vw,44px)">You post on Monday.<br><span class="p">They see it instantly.</span></h2>
+      <p class="sub" style="margin-top:clamp(10px,1.2vh,14px)">Post your events from your laptop or phone. The moment you hit Publish — Tonight fires a push notification to every follower's lock screen. No delay. No algorithm deciding who sees it.</p>
+      <div style="margin-top:clamp(14px,1.8vh,20px);display:flex;flex-direction:column;gap:7px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:clamp(11px,1.3vw,13px);color:var(--text2)"><span style="color:var(--green);font-weight:700">✓</span> Notification fires in under 60 seconds</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:clamp(11px,1.3vw,13px);color:var(--text2)"><span style="color:var(--green);font-weight:700">✓</span> 100% of followers receive it — no algorithm</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:clamp(11px,1.3vw,13px);color:var(--text2)"><span style="color:var(--green);font-weight:700">✓</span> Weekly email digest sent automatically by Tonight</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:clamp(11px,1.3vw,13px);color:var(--text2)"><span style="color:var(--green);font-weight:700">✓</span> Calendar reminders 24h and 2h before event</div>
+      </div>
+    </div>
+    <div class="col-r" style="flex-direction:column;gap:clamp(10px,1.3vh,14px);align-items:flex-start;width:100%">
+      <!-- Laptop mockup -->
+      <div class="laptop">
+        <div class="laptop-lid">
+          <span class="laptop-cam"></span>
+          <div class="laptop-screen">
+            <div class="dash-topbar">
+              <span class="dash-logo">Tonight Business</span>
+              <span class="dash-venue">Lush Nightclub · HCMC</span>
+              <span style="font-size:clamp(8px,1vw,10px);color:var(--text3)">🔔</span>
+            </div>
+            <div class="dash-stat-row">
+              <div class="dash-stat"><div class="dash-stat-n">247</div><div class="dash-stat-l">Followers</div></div>
+              <div class="dash-stat"><div class="dash-stat-n" style="color:var(--gold)">1,847</div><div class="dash-stat-l">Views this week</div></div>
+              <div class="dash-stat"><div class="dash-stat-n" style="color:var(--purple)">342</div><div class="dash-stat-l">Taps</div></div>
+            </div>
+            <div class="dash-event-row"><div class="dash-ev-dot" style="background:var(--green)"></div><div class="dash-ev-title">Thu — DJ Night by Alex</div><div class="dash-ev-badge" style="background:rgba(0,208,132,.1);color:var(--green)">LIVE</div></div>
+            <div class="dash-event-row"><div class="dash-ev-dot" style="background:var(--gold)"></div><div class="dash-ev-title">Fri — Guestlist Friday</div><div class="dash-ev-badge" style="background:rgba(245,200,66,.1);color:var(--gold)">BOOST</div></div>
+            <div class="dash-event-row"><div class="dash-ev-dot" style="background:var(--purple)"></div><div class="dash-ev-title">Sat — Monthly Rave</div><div class="dash-ev-badge" style="background:rgba(139,92,246,.1);color:var(--purple)">LIVE</div></div>
+            <div class="dash-actions">
+              <div class="dash-btn g">+ Post Event</div>
+              <div class="dash-btn o">⚡ Push Live Deal</div>
+            </div>
+          </div>
+        </div>
+        <div class="laptop-base"></div>
+      </div>
+      <!-- Phone notification -->
+      <div style="display:flex;align-items:center;gap:clamp(8px,1.2vw,14px)">
+        <div style="font-size:clamp(14px,1.8vw,20px);color:var(--text3)">→</div>
+        <div class="phone" style="width:clamp(100px,12vw,148px)">
+          <div class="phone-body">
+            <div class="phone-screen">
+              <div class="phone-notch"></div>
+              <div class="lockscreen">
+                <div class="lock-time">22:14</div>
+                <div class="lock-date">Thursday, June 12</div>
+                <div class="lock-notif">
+                  <div class="lock-app-icon">TN</div>
+                  <div class="lock-content">
+                    <div class="lock-app-name">Tonight · now</div>
+                    <div class="lock-title">🎧 DJ Night Tonight — Free Entry</div>
+                    <div class="lock-msg">Lush Nightclub · 10PM · District 1</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 7 — AUTOMATION (3 CHANNELS)
+══════════════════════════════════════ -->
+<div class="slide" id="s6">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(0,208,132,.05),transparent)"></div>
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%">
+    <div class="label">What Happens After You Post</div>
+    <h2 class="title">You post once.<br><span class="g">Tonight handles everything else.</span></h2>
+    <p class="sub" style="margin:clamp(6px,.8vh,10px) auto clamp(0px,0vh,0px)">Three automatic channels keep your followers engaged and remind them to show up — without any effort from you.</p>
+    <div class="auto-list">
+      <div class="auto-item" style="border-color:rgba(0,208,132,.2);background:rgba(0,208,132,.04)">
+        <div class="auto-icon">📲</div>
+        <div>
+          <div class="auto-title" style="color:var(--green)">Push Notification — fires in 60 seconds</div>
+          <div class="auto-desc">Straight to their lock screen. No algorithm. 100% of your followers receive it.</div>
+          <div class="auto-eg">"🍹 Happy Hour now at Lush — 2-for-1 until 7PM. Get there early."</div>
+        </div>
+      </div>
+      <div class="auto-item">
+        <div class="auto-icon">📧</div>
+        <div>
+          <div class="auto-title">Weekly Event Email — automated by Tonight</div>
+          <div class="auto-desc">Every week, we email your followers a digest of your upcoming events. Your name. Your schedule. Zero effort from you.</div>
+          <div class="auto-eg">Subject: "🎉 What's on at Lush this week — DJ Night Thu + Rooftop Sat"</div>
+        </div>
+      </div>
+      <div class="auto-item">
+        <div class="auto-icon">📅</div>
+        <div>
+          <div class="auto-title">Calendar Reminders — 24h and 2h before doors open</div>
+          <div class="auto-desc">When followers save your event, Tonight reminds them automatically. They plan around you. They simply show up.</div>
+          <div class="auto-eg">"Your event tonight — Subculture at The Vault. Doors open at 10PM."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 8 — WEEKLY ROUTINE
+══════════════════════════════════════ -->
+<div class="slide" id="s7">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 50% 60% at 50% 100%,rgba(245,200,66,.06),transparent)"></div>
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%">
+    <div class="label gold">Your Weekly Routine</div>
+    <h2 class="title">20 minutes a week.<br><span class="o">Full venue every night.</span></h2>
+    <p class="sub" style="margin:clamp(6px,.8vh,10px) auto clamp(0px,0vh,0px)">Less time than one Instagram session. Copy this exactly.</p>
+    <div class="rt-row">
+      <div class="rt gold">
+        <div class="rt-day">Monday</div>
+        <div class="rt-time">10</div>
+        <div class="rt-unit">minutes</div>
+        <div class="rt-label">Post your full week</div>
+        <div class="rt-body">Every event — DJ sets, happy hours, themed nights. Title, genre, time, price. Your competitors haven't posted yet.</div>
+      </div>
+      <div class="rt green">
+        <div class="rt-day">Thursday</div>
+        <div class="rt-time">5</div>
+        <div class="rt-unit">minutes</div>
+        <div class="rt-label">Push the weekend deal</div>
+        <div class="rt-body">Early bird, drink package, guestlist offer. Push Thursday so followers plan their weekend around you.</div>
+      </div>
+      <div class="rt green">
+        <div class="rt-day">Fri · Sat</div>
+        <div class="rt-time">2</div>
+        <div class="rt-unit">minutes</div>
+        <div class="rt-label">Go live — doors open now</div>
+        <div class="rt-body">Post a last-minute deal one hour before opening. Catches everyone still deciding. Highest-converting moment of the week.</div>
+      </div>
+      <div class="rt">
+        <div class="rt-day" style="color:var(--text3)">Sunday</div>
+        <div class="rt-time" style="color:var(--text2)">3</div>
+        <div class="rt-unit">minutes</div>
+        <div class="rt-label">Seed next month</div>
+        <div class="rt-body">Add confirmed future events to the calendar. Followers save them before you post anywhere else.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 9 — REAL RESULTS (party bg)
+══════════════════════════════════════ -->
+<div class="slide" id="s8">
+  <!-- Celebratory atmosphere -->
+  <div class="venue-bg">
+    <div class="beam" style="left:10%;width:clamp(25px,3.5vw,46px);height:45%;background:linear-gradient(180deg,rgba(0,208,132,.4),transparent);transform:rotate(-12deg)"></div>
+    <div class="beam" style="right:10%;width:clamp(25px,3.5vw,46px);height:45%;background:linear-gradient(180deg,rgba(245,200,66,.35),transparent);transform:rotate(12deg)"></div>
+    <div class="beam" style="left:50%;transform:translateX(-50%);width:clamp(30px,4vw,52px);height:50%;background:linear-gradient(180deg,rgba(139,92,246,.35),transparent)"></div>
+    <div class="light-source" style="left:10%;width:46px;height:20px;background:rgba(0,208,132,.9);opacity:.7"></div>
+    <div class="light-source" style="right:10%;width:46px;height:20px;background:rgba(245,200,66,.9);opacity:.6"></div>
+    <div class="light-source" style="left:50%;transform:translateX(-50%);width:52px;height:22px;background:rgba(139,92,246,.9);opacity:.65"></div>
+    <div class="floor-glow" style="width:60%;height:clamp(50px,6vh,80px);background:rgba(0,208,132,.12)"></div>
+    <div class="crowd-line" style="opacity:.08">💃🕺🧍💃🕺🧍💃🕺🧍💃🕺🧍💃🕺🧍</div>
+  </div>
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%">
+    <div class="label">Real Venues. Real Numbers.</div>
+    <div class="hero-quote-box">
+      <div class="hero-result">+₫28 million in 60 days</div>
+      <p class="hero-quote">"We post a deal Monday morning and have 40 walk-ins by Tuesday evening from the notification. The only marketing that has ever worked same-day for us."</p>
+      <div class="hero-attr">Minh Nguyen</div>
+      <div class="hero-venue">Lush Nightclub · Ho Chi Minh City</div>
+    </div>
+    <div class="stat-row" style="margin-top:clamp(16px,2vh,24px)">
+      <div class="sc"><div class="sc-n g">+340%</div><div class="sc-l">Mid-week bookings / 60 days</div></div>
+      <div class="sc"><div class="sc-n">3×</div><div class="sc-l">Repeat visits vs Instagram</div></div>
+      <div class="sc"><div class="sc-n g">6d</div><div class="sc-l">Earlier average booking</div></div>
+    </div>
+    <div class="testi-row">
+      <div class="testi">
+        <div class="testi-res">+60% presales month 1</div>
+        <p class="testi-text">"People started booking 2 weeks in advance because they could finally see our full programme. Saturdays went from walk-in only to mostly pre-sold."</p>
+        <div class="testi-name">Priya Lim</div><div class="testi-venue-l">Rooftop 23 · Da Nang</div>
+      </div>
+      <div class="testi">
+        <div class="testi-res">6 weeks > 6 months of Facebook ads</div>
+        <p class="testi-text">"Dropped ₫3M/month on ads. Switched to Tonight and had more new customers in 6 weeks than the previous 6 months combined. At ₫0 ad spend."</p>
+        <div class="testi-name">Thanh Hoang</div><div class="testi-venue-l">The Vault · Hanoi</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 10 — PRICING
+══════════════════════════════════════ -->
+<div class="slide" id="s9">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 50% 60% at 50% 0%,rgba(0,208,132,.06),transparent)"></div>
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%">
+    <div class="label">Choose Your Plan</div>
+    <h2 class="title">Start free.<br><span class="g">Scale when you see it working.</span></h2>
+    <div style="margin:clamp(8px,1vh,12px) auto clamp(14px,1.8vh,20px);padding:clamp(10px,1.2vh,13px) clamp(22px,2.8vw,30px);background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.14);border-radius:10px;max-width:540px">
+      <p style="font-size:clamp(11px,1.4vw,14px);color:var(--text2);line-height:1.6">Growth plan is <strong style="color:var(--gold)">₫990K/month.</strong> One extra table on a Tuesday covers it. The other 29 nights are pure profit.</p>
+    </div>
+    <div class="pkg-row">
+      <div class="pkg">
+        <div class="pkg-name">Starter</div>
+        <div class="pkg-price">₫0 <span class="pkg-mo">/ month</span></div>
+        <div class="pkg-period">Free · Forever</div>
+        <div class="pkg-div"></div>
+        <div class="pkg-item"><span class="pkg-chk">✓</span> Venue profile page</div>
+        <div class="pkg-item"><span class="pkg-chk">✓</span> Up to 4 events / month</div>
+        <div class="pkg-item"><span class="pkg-chk">✓</span> Calendar listing</div>
+        <div class="pkg-item"><span class="pkg-chk">✓</span> 2 live deals / month</div>
+        <button class="pkg-btn outline" onclick="location.href='index.html'">Start Free</button>
+      </div>
+      <div class="pkg feat">
+        <div class="pkg-badge">Most Popular</div>
+        <div class="pkg-name" style="color:var(--green)">Growth</div>
+        <div class="pkg-price" style="color:var(--green)">₫990K <span class="pkg-mo">/ month</span></div>
+        <div class="pkg-period">Cancel anytime · No contract</div>
+        <div class="pkg-div"></div>
+        <div class="pkg-item"><span class="pkg-chk">✓</span> Unlimited events & deals</div>
+        <div class="pkg-item"><span class="pkg-chk">✓</span> Priority search placement</div>
+        <div class="pkg-item"><span class="pkg-chk">✓</span> Push to all city users</div>
+        <div class="pkg-item"><span class="pkg-chk">✓</span> Monthly performance report</div>
+        <button class="pkg-btn green" onclick="location.href='index.html'">Start Growth →</button>
+      </div>
+      <div class="pkg">
+        <div class="pkg-name" style="color:var(--gold)">Pro</div>
+        <div class="pkg-price" style="color:var(--gold)">₫2.4M <span class="pkg-mo">/ month</span></div>
+        <div class="pkg-period">Multi-venue operators</div>
+        <div class="pkg-div"></div>
+        <div class="pkg-item"><span class="pkg-chk gold">✓</span> Up to 5 venues</div>
+        <div class="pkg-item"><span class="pkg-chk gold">✓</span> Featured homepage placement</div>
+        <div class="pkg-item"><span class="pkg-chk gold">✓</span> Dedicated account manager</div>
+        <div class="pkg-item"><span class="pkg-chk gold">✓</span> Custom event branding</div>
+        <button class="pkg-btn gold" onclick="location.href='index.html'">Talk to Us</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 11 — CTA (full venue scene)
+══════════════════════════════════════ -->
+<div class="slide" id="s10">
+  <!-- Full club atmosphere -->
+  <div class="venue-bg">
+    <div class="beam" style="left:4%;width:clamp(35px,5vw,65px);height:70%;background:linear-gradient(180deg,rgba(139,92,246,.6),transparent);transform:rotate(-24deg)"></div>
+    <div class="beam" style="left:16%;width:clamp(28px,4vw,52px);height:62%;background:linear-gradient(180deg,rgba(0,208,132,.45),transparent);transform:rotate(-12deg)"></div>
+    <div class="beam" style="left:32%;width:clamp(24px,3.5vw,44px);height:55%;background:linear-gradient(180deg,rgba(245,200,66,.35),transparent);transform:rotate(-4deg)"></div>
+    <div class="beam" style="right:28%;width:clamp(24px,3.5vw,44px);height:55%;background:linear-gradient(180deg,rgba(245,200,66,.3),transparent);transform:rotate(4deg)"></div>
+    <div class="beam" style="right:12%;width:clamp(28px,4vw,52px);height:62%;background:linear-gradient(180deg,rgba(255,59,92,.45),transparent);transform:rotate(13deg)"></div>
+    <div class="beam" style="right:2%;width:clamp(35px,5vw,65px);height:70%;background:linear-gradient(180deg,rgba(139,92,246,.55),transparent);transform:rotate(25deg)"></div>
+    <!-- Light sources -->
+    <div class="light-source" style="left:4%;width:65px;height:28px;background:rgba(139,92,246,.95);opacity:.85"></div>
+    <div class="light-source" style="left:16%;width:52px;height:22px;background:rgba(0,208,132,.95);opacity:.75"></div>
+    <div class="light-source" style="left:32%;width:44px;height:18px;background:rgba(245,200,66,.95);opacity:.65"></div>
+    <div class="light-source" style="right:28%;width:44px;height:18px;background:rgba(245,200,66,.95);opacity:.6"></div>
+    <div class="light-source" style="right:12%;width:52px;height:22px;background:rgba(255,59,92,.95);opacity:.75"></div>
+    <div class="light-source" style="right:2%;width:65px;height:28px;background:rgba(139,92,246,.95);opacity:.8"></div>
+    <!-- Floor -->
+    <div class="floor-glow" style="width:80%;height:clamp(70px,9vh,110px);background:rgba(139,92,246,.22)"></div>
+    <!-- Crowd -->
+    <div class="crowd-line">🧍💃🕺🧍💃🕺🧍💃🕺🧍💃🕺🧍💃🕺🧍💃🕺🧍💃🕺🧍</div>
+  </div>
+  <!-- Content -->
+  <div style="position:relative;z-index:1;text-align:center">
+    <div class="cta-pill">
+      <div class="cta-n">3</div>
+      <div class="cta-t">founding venue slots still open</div>
+    </div>
+    <div class="label" style="margin-bottom:clamp(8px,1vh,12px)">Your move</div>
+    <h2 class="title" style="font-size:clamp(28px,4.5vw,58px);max-width:680px">The venues that start tonight<br>will own their city. <span class="g">Be one of them.</span></h2>
+    <p class="sub" style="margin:clamp(10px,1.2vh,16px) auto clamp(0px,0vh,0px);max-width:500px">Free page. 5 minutes to go live. QR codes on your tables this weekend. Your audience grows while you sleep.</p>
+    <a href="index.html" class="cta-btn">Claim My Venue — It's Free →</a>
+    <p class="cta-note">No credit card · Live within 24 hours · Cancel anytime</p>
+    <div class="city-row">
+      <div class="city"><span style="color:var(--green);font-size:7px">●</span> Ho Chi Minh City</div>
+      <div class="city"><span style="color:var(--green);font-size:7px">●</span> Hanoi</div>
+      <div class="city"><span style="color:var(--green);font-size:7px">●</span> Da Nang</div>
+      <div class="city"><span style="color:rgba(255,255,255,.18);font-size:7px">○</span> Bangkok — Soon</div>
+      <div class="city"><span style="color:rgba(255,255,255,.18);font-size:7px">○</span> Bali — Soon</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<script>
+const TOTAL = 11;
+let cur = 0;
+
+const slides = ()=>document.querySelectorAll('.slide');
+const dotEls = ()=>document.querySelectorAll('.dot');
+
+function go(dir){
+  const sl = slides();
+  sl[cur].classList.remove('active');
+  sl[cur].classList.add('exit');
+  sl[cur].scrollTop = 0;
+  setTimeout(()=>sl[cur].classList.remove('exit'), 460);
+  cur = (cur + dir + TOTAL) % TOTAL;
+  sl[cur].classList.add('active');
+  sl[cur].scrollTop = 0;
+  update();
+}
+
+function goTo(n){
+  if(n === cur) return;
+  const sl = slides();
+  sl[cur].classList.remove('active');
+  sl[cur].classList.add('exit');
+  sl[cur].scrollTop = 0;
+  setTimeout(()=>sl[cur].classList.remove('exit'), 460);
+  cur = n;
+  sl[cur].classList.add('active');
+  sl[cur].scrollTop = 0;
+  update();
+}
+
+function update(){
+  document.getElementById('prog').style.width = ((cur+1)/TOTAL*100)+'%';
+  document.getElementById('counter').textContent = (cur+1)+' / '+TOTAL;
+  dotEls().forEach((d,i)=>d.classList.toggle('on', i===cur));
+}
+
+// Build dots
+const dotsEl = document.getElementById('dots');
+for(let i=0;i<TOTAL;i++){
+  const d=document.createElement('div');
+  d.className='dot'+(i===0?' on':'');
+  d.onclick=()=>goTo(i);
+  dotsEl.appendChild(d);
+}
+
+// Keyboard
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '||e.key==='ArrowDown') go(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp') go(-1);
+});
+
+// Touch / swipe
+let tx=0;
+document.addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx;
+  if(Math.abs(dx)>44){go(dx<0?1:-1);}
+},{passive:true});
+
+update();
+</script>
+</body>
+</html>

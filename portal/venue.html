@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Tonight Vietnam — Venue Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:       #080810;
+  --surface:  #0e0e1a;
+  --card:     #13131f;
+  --card2:    #18182a;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.12);
+  --gold:     #f5c842;
+  --gold-dim: rgba(245,200,66,0.10);
+  --green:    #22c55e;
+  --red:      #ef4444;
+  --blue:     #3b82f6;
+  --text:     #f1f5f9;
+  --text2:    #94a3b8;
+  --text3:    #475569;
+  --sidebar-w:230px;
+}
+html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.hide{display:none!important}
+
+/* ── LOADING ── */
+#loading{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:999;
+}
+.spinner{width:32px;height:32px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin-sm{width:18px;height:18px;border-width:2px;border-top-color:#000}
+.loading-label{font-size:13px;color:var(--text2)}
+
+/* ── LOGIN ── */
+#login{
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(ellipse 80% 40% at 50% 0%,rgba(245,200,66,0.05) 0%,transparent 70%);
+}
+.login-card{width:100%;max-width:400px;background:var(--card);border:1px solid var(--border2);border-radius:16px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.6)}
+.login-head{padding:36px 32px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+.login-mark{width:52px;height:52px;border-radius:14px;background:var(--gold-dim);border:1px solid rgba(245,200,66,0.25);display:flex;align-items:center;justify-content:center;font-size:22px}
+.login-brand{font-size:18px;font-weight:800;color:var(--gold);letter-spacing:0.5px}
+.login-tag{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--text3);text-transform:uppercase}
+.login-body{padding:28px 32px}
+.field-label{display:block;font-size:11px;font-weight:600;color:var(--text2);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px}
+.input-row{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;transition:border-color .15s}
+.input-row:focus-within{border-color:rgba(245,200,66,0.4)}
+.input-row svg{width:15px;height:15px;fill:var(--text3);flex-shrink:0}
+.input-row input{flex:1;background:none;border:none;outline:none;font-size:14px;font-family:inherit;color:var(--text)}
+.input-row input::placeholder{color:var(--text3)}
+.mt-field{margin-top:16px}
+.err-box{display:none;align-items:flex-start;gap:8px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:10px 12px;margin-top:12px;font-size:12px;color:var(--red);line-height:1.5}
+.err-box.on{display:flex}
+.login-btn{width:100%;margin-top:20px;padding:14px;border-radius:10px;background:var(--gold);color:#000;font-size:14px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s}
+.login-btn:hover{opacity:0.9}
+.login-btn:disabled{opacity:0.5;cursor:not-allowed}
+.login-footer{padding:16px 32px;text-align:center;font-size:12px;color:var(--text3);border-top:1px solid var(--border)}
+.login-footer a{color:var(--gold);text-decoration:none}
+
+/* ── ACCESS DENIED ── */
+#denied{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.denied-card{background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:48px;text-align:center;max-width:480px}
+.denied-icon{font-size:56px;margin-bottom:20px}
+.denied-title{font-size:22px;font-weight:700;margin-bottom:12px}
+.denied-sub{color:var(--text2);line-height:1.6;margin-bottom:24px}
+.denied-btn{padding:12px 24px;border-radius:10px;background:var(--gold);color:#000;font-weight:700;border:none;cursor:pointer;font-size:14px}
+
+/* ── APP LAYOUT ── */
+#app{display:none;height:100vh}
+#app.on{display:flex}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  display:flex;flex-direction:column;
+  background:var(--surface);border-right:1px solid var(--border);
+  height:100vh;overflow-y:auto;
+}
+.sidebar-brand{
+  display:flex;align-items:center;gap:10px;
+  padding:20px 20px 16px;border-bottom:1px solid var(--border);
+}
+.brand-mark{width:36px;height:36px;border-radius:10px;background:var(--gold-dim);border:1px solid rgba(245,200,66,0.25);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.brand-text .b1{font-size:14px;font-weight:800;color:var(--gold)}
+.brand-text .b2{font-size:10px;color:var(--text3);font-weight:500}
+.sidebar-venue{
+  padding:12px 16px;margin:12px;border-radius:10px;
+  background:var(--gold-dim);border:1px solid rgba(245,200,66,0.15);
+}
+.sv-label{font-size:10px;color:var(--gold);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.sv-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sv-city{font-size:12px;color:var(--text2)}
+.nav-section{padding:8px 12px 4px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:2px;text-transform:uppercase}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px;border-radius:10px;margin:2px 12px;
+  cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;
+  transition:background .15s,color .15s;
+}
+.nav-item:hover{background:var(--card2);color:var(--text)}
+.nav-item.active{background:var(--gold-dim);color:var(--gold);font-weight:600}
+.nav-item svg{width:16px;height:16px;fill:currentColor;flex-shrink:0}
+.sidebar-footer{margin-top:auto;padding:16px}
+.signout-btn{
+  width:100%;padding:10px;border-radius:8px;
+  background:transparent;border:1px solid var(--border);
+  color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:border-color .15s,color .15s;
+}
+.signout-btn:hover{border-color:var(--red);color:var(--red)}
+.signout-btn svg{width:14px;height:14px;fill:currentColor}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;height:60px;flex-shrink:0;
+  border-bottom:1px solid var(--border);background:var(--surface);
+}
+.page-title{font-size:16px;font-weight:700}
+.page-sub{font-size:12px;color:var(--text3)}
+.content{flex:1;overflow-y:auto;padding:24px}
+
+/* ── PANELS ── */
+.panel{display:none}
+.panel.active{display:block}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
+.stat-label{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px}
+.stat-value{font-size:28px;font-weight:800;color:var(--gold)}
+.stat-sub{font-size:12px;color:var(--text2);margin-top:4px}
+
+/* ── ADD EVENT CARD ── */
+.add-event-card{
+  background:linear-gradient(135deg,rgba(245,200,66,0.08),rgba(245,200,66,0.03));
+  border:1px solid rgba(245,200,66,0.2);border-radius:14px;
+  padding:24px;display:flex;align-items:center;justify-content:space-between;
+  gap:16px;margin-bottom:24px;flex-wrap:wrap;
+}
+.add-event-card h3{font-size:16px;font-weight:700;margin-bottom:4px}
+.add-event-card p{font-size:13px;color:var(--text2)}
+.btn-gold{
+  padding:12px 24px;border-radius:10px;background:var(--gold);color:#000;
+  font-size:13px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;
+  transition:opacity .15s,transform .15s;display:flex;align-items:center;gap:6px;
+}
+.btn-gold:hover{opacity:0.9;transform:translateY(-1px)}
+
+/* ── TABLE ── */
+.table-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px}
+.table-header h3{font-size:15px;font-weight:700}
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{text-align:left;font-size:11px;font-weight:600;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase;padding:10px 12px;border-bottom:1px solid var(--border)}
+.data-table td{padding:14px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:rgba(255,255,255,0.02)}
+.td-name{font-weight:600}
+.td-muted{color:var(--text2);font-size:13px}
+.status-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.pill-active{background:rgba(34,197,94,0.1);color:var(--green)}
+.pill-upcoming{background:rgba(59,130,246,0.1);color:var(--blue)}
+.pill-past{background:rgba(255,255,255,0.05);color:var(--text3)}
+.btn-del{padding:6px 12px;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:transparent;color:var(--red);font-size:12px;font-weight:500;cursor:pointer;transition:background .15s}
+.btn-del:hover{background:rgba(239,68,68,0.1)}
+.empty{text-align:center;padding:48px;color:var(--text3)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-title{font-size:14px;font-weight:600;color:var(--text2);margin-bottom:8px}
+.empty-sub{font-size:13px}
+
+/* ── FORM ── */
+.form-card{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:28px;max-width:680px}
+.form-grid{display:grid;gap:18px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:540px){.form-row{grid-template-columns:1fr}}
+.f-label{display:block;font-size:11px;font-weight:700;color:var(--text2);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:7px}
+.f-input{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:9px;padding:11px 14px;font-size:14px;font-family:inherit;color:var(--text);outline:none;transition:border-color .15s}
+.f-input:focus{border-color:rgba(245,200,66,0.4)}
+.f-input::placeholder{color:var(--text3)}
+.f-textarea{resize:vertical;min-height:90px;line-height:1.5}
+.emoji-picker{display:flex;gap:10px;flex-wrap:wrap}
+.emoji-opt{
+  width:44px;height:44px;border-radius:10px;border:2px solid var(--border2);background:var(--bg);
+  font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:border-color .15s,background .15s;
+}
+.emoji-opt.selected{border-color:var(--gold);background:var(--gold-dim)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
+.toggle-label{font-size:13px;font-weight:500}
+.toggle-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-track{position:absolute;inset:0;background:var(--border2);border-radius:24px;cursor:pointer;transition:.2s}
+.toggle input:checked+.toggle-track{background:var(--gold)}
+.toggle-track::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-track::before{transform:translateX(20px)}
+.divider{height:1px;background:var(--border);margin:4px 0}
+.submit-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.btn-cancel{padding:12px 20px;border-radius:9px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:border-color .15s}
+.btn-cancel:hover{border-color:var(--border2);color:var(--text)}
+
+/* ── PROFILE ── */
+.profile-card{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:28px;max-width:600px;margin-bottom:20px}
+.profile-card h3{font-size:15px;font-weight:700;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);
+  background:var(--card2);border:1px solid var(--border2);border-radius:10px;
+  padding:12px 20px;font-size:13px;font-weight:500;
+  opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;z-index:9999;
+}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── MOBILE TABBAR ── */
+.mobile-tabbar{
+  display:none;position:fixed;bottom:0;left:0;right:0;
+  background:var(--surface);border-top:1px solid var(--border);
+  padding:8px 0 max(8px,env(safe-area-inset-bottom));
+  display:flex;z-index:50;
+}
+.mobile-tabbar button{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;
+  background:none;border:none;cursor:pointer;color:var(--text3);
+  font-size:10px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;
+  padding:8px 4px;transition:color .15s;
+}
+.mobile-tabbar button.active{color:var(--gold)}
+.mobile-tabbar button svg{width:20px;height:20px;fill:currentColor}
+
+@media(min-width:769px){
+  .mobile-tabbar{display:none}
+  .sidebar{display:flex}
+}
+@media(max-width:768px){
+  .sidebar{display:none}
+  .mobile-tabbar{display:flex}
+  .content{padding-bottom:80px}
+  #app.on{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="loading-label">Loading venue portal...</div>
+</div>
+
+<!-- LOGIN -->
+<div id="login" class="hide">
+  <div class="login-card">
+    <div class="login-head">
+      <div class="login-mark">🌙</div>
+      <div class="login-brand">TONIGHT VIETNAM</div>
+      <div class="login-tag">Venue Portal</div>
+    </div>
+    <div class="login-body">
+      <label class="field-label" for="l-email">Email Address</label>
+      <div class="input-row">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        <input type="email" id="l-email" placeholder="your@email.com" autocomplete="email"/>
+      </div>
+      <div class="field-label mt-field" style="margin-top:14px">Password</div>
+      <div class="input-row">
+        <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+        <input type="password" id="l-pw" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <div class="err-box" id="l-err">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+        <span id="l-err-msg">Invalid email or password.</span>
+      </div>
+      <button class="login-btn" id="l-btn" onclick="doLogin()">Sign In to Venue Portal</button>
+    </div>
+    <div class="login-footer">Don't have access yet? <a href="./join.html">Apply to join →</a></div>
+  </div>
+</div>
+
+<!-- ACCESS DENIED -->
+<div id="denied" class="hide">
+  <div class="denied-card">
+    <div class="denied-icon">⏳</div>
+    <div class="denied-title">Application Under Review</div>
+    <div class="denied-sub">Your venue application is pending approval. The Tonight team reviews all applications within 24 hours. You'll receive an email once you're approved.</div>
+    <button class="denied-btn" onclick="doSignOut()">Sign Out</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-mark">🌙</div>
+      <div class="brand-text">
+        <div class="b1">TONIGHT</div>
+        <div class="b2">VENUE PORTAL</div>
+      </div>
+    </div>
+    <div class="sidebar-venue">
+      <div class="sv-label">Your Venue</div>
+      <div class="sv-name" id="v-name">—</div>
+      <div class="sv-city" id="v-city">—</div>
+    </div>
+
+    <div class="nav-section" style="margin-top:8px">Menu</div>
+    <div class="nav-item active" onclick="nav('overview',this)">
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+      Overview
+    </div>
+    <div class="nav-item" onclick="nav('events',this)">
+      <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+      My Events
+    </div>
+    <div class="nav-item" onclick="nav('add',this)">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      Add Event
+    </div>
+    <div class="nav-item" onclick="nav('profile',this)">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      Profile
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="signout-btn" onclick="doSignOut()">
+        <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="page-title">Overview</div>
+        <div class="page-sub" id="page-sub">Tonight Vietnam · Venue Portal</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- OVERVIEW PANEL -->
+      <div class="panel active" id="panel-overview">
+        <div class="add-event-card">
+          <div>
+            <h3>🎫 Publish Your Next Event</h3>
+            <p>Add events to get discovered by thousands of nightlife seekers</p>
+          </div>
+          <button class="btn-gold" onclick="nav('add',document.querySelector('[onclick*=add]'))">
+            + Add New Event
+          </button>
+        </div>
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Total Events</div>
+            <div class="stat-value" id="s-total">0</div>
+            <div class="stat-sub">Published</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Upcoming</div>
+            <div class="stat-value" id="s-upcoming">0</div>
+            <div class="stat-sub">Scheduled</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Featured</div>
+            <div class="stat-value" id="s-featured">0</div>
+            <div class="stat-sub">Highlighted events</div>
+          </div>
+        </div>
+        <div class="table-header"><h3>Recent Events</h3></div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+          <table class="data-table">
+            <thead><tr><th>Event</th><th>Date</th><th>Type</th><th>Status</th></tr></thead>
+            <tbody id="recent-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MY EVENTS PANEL -->
+      <div class="panel" id="panel-events">
+        <div class="table-header">
+          <h3>My Events (<span id="events-count">0</span>)</h3>
+          <button class="btn-gold" onclick="nav('add',document.querySelector('[onclick*=add]'))">+ Add Event</button>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+          <table class="data-table">
+            <thead><tr><th>Event</th><th>Date</th><th>Type</th><th>Status</th><th></th></tr></thead>
+            <tbody id="events-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ADD EVENT PANEL -->
+      <div class="panel" id="panel-add">
+        <div class="table-header"><h3>Add New Event</h3></div>
+        <div class="form-card">
+          <form class="form-grid" novalidate onsubmit="return false">
+
+            <div>
+              <label class="f-label" for="ev-title">Event Title *</label>
+              <input class="f-input" type="text" id="ev-title" placeholder="e.g. Saturday Night DJ Party"/>
+            </div>
+
+            <div class="form-row">
+              <div>
+                <label class="f-label" for="ev-date">Date *</label>
+                <input class="f-input" type="date" id="ev-date"/>
+              </div>
+              <div>
+                <label class="f-label" for="ev-time">Time *</label>
+                <input class="f-input" type="time" id="ev-time" value="21:00"/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div>
+                <label class="f-label" for="ev-genre">Event Type *</label>
+                <select class="f-input" id="ev-genre">
+                  <option value="">Select type...</option>
+                  <option>Live Music</option>
+                  <option>DJ Night</option>
+                  <option>Themed Party</option>
+                  <option>Happy Hour</option>
+                  <option>Comedy Night</option>
+                  <option>Sports Event</option>
+                  <option>Brunch</option>
+                  <option>Special Event</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="f-label" for="ev-price">Entry Price (VND)</label>
+                <input class="f-input" type="number" id="ev-price" placeholder="0 = Free" min="0"/>
+              </div>
+            </div>
+
+            <div>
+              <label class="f-label">Choose an Emoji</label>
+              <div class="emoji-picker" id="emoji-picker">
+                <div class="emoji-opt selected" data-e="🎵" onclick="pickEmoji(this)">🎵</div>
+                <div class="emoji-opt" data-e="🎸" onclick="pickEmoji(this)">🎸</div>
+                <div class="emoji-opt" data-e="🎉" onclick="pickEmoji(this)">🎉</div>
+                <div class="emoji-opt" data-e="🍺" onclick="pickEmoji(this)">🍺</div>
+                <div class="emoji-opt" data-e="🎭" onclick="pickEmoji(this)">🎭</div>
+                <div class="emoji-opt" data-e="⚽" onclick="pickEmoji(this)">⚽</div>
+                <div class="emoji-opt" data-e="🌙" onclick="pickEmoji(this)">🌙</div>
+                <div class="emoji-opt" data-e="🔥" onclick="pickEmoji(this)">🔥</div>
+              </div>
+            </div>
+
+            <div>
+              <label class="f-label" for="ev-desc">Event Description *</label>
+              <textarea class="f-input f-textarea" id="ev-desc" maxlength="200" placeholder="Tell people what to expect at this event..."></textarea>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Mark as Featured Event</div>
+                <div class="toggle-sub">Featured events get extra visibility on Tonight Vietnam</div>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="ev-featured"/>
+                <span class="toggle-track"></span>
+              </label>
+            </div>
+
+            <div class="submit-row">
+              <button class="btn-gold" id="ev-submit" onclick="submitEvent()">Publish Event</button>
+              <button type="button" class="btn-cancel" onclick="clearForm()">Clear</button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+      <!-- PROFILE PANEL -->
+      <div class="panel" id="panel-profile">
+        <div class="profile-card">
+          <h3>Venue Profile</h3>
+          <div class="form-grid">
+            <div class="form-row">
+              <div>
+                <label class="f-label">Venue Name</label>
+                <input class="f-input" type="text" id="p-vname" readonly style="opacity:0.6;cursor:default"/>
+              </div>
+              <div>
+                <label class="f-label">City</label>
+                <input class="f-input" type="text" id="p-city" readonly style="opacity:0.6;cursor:default"/>
+              </div>
+            </div>
+            <div>
+              <label class="f-label">Venue Type</label>
+              <input class="f-input" type="text" id="p-type" readonly style="opacity:0.6;cursor:default"/>
+            </div>
+            <div class="divider"></div>
+            <div class="form-row">
+              <div>
+                <label class="f-label">Phone Number</label>
+                <input class="f-input" type="tel" id="p-phone" placeholder="+84 xxx xxx xxx"/>
+              </div>
+              <div>
+                <label class="f-label">Instagram</label>
+                <input class="f-input" type="text" id="p-ig" placeholder="@yourvenue"/>
+              </div>
+            </div>
+            <div>
+              <label class="f-label">Website</label>
+              <input class="f-input" type="url" id="p-web" placeholder="https://yourvenue.com"/>
+            </div>
+            <button class="btn-gold" id="p-save" onclick="saveProfile()">Save Changes</button>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text3)">Account email: <span id="p-email" style="color:var(--text2)">—</span></div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+
+  <!-- MOBILE TABBAR -->
+  <div class="mobile-tabbar">
+    <button class="active" onclick="nav('overview',this)">
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+      Overview
+    </button>
+    <button onclick="nav('events',this)">
+      <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+      Events
+    </button>
+    <button onclick="nav('add',this)">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      Add
+    </button>
+    <button onclick="nav('profile',this)">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      Profile
+    </button>
+  </div>
+</div><!-- /app -->
+
+<div id="toast"></div>
+
+<script type="module">
+// ── FIREBASE CONFIG ────────────────────────────────────────────────────────────
+// ← PASTE YOUR FIREBASE CONFIG HERE (same as portal/index.html)
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyBHASTMA5bMn5uD_3zT7Y8CoY87N2kJGb0",
+  authDomain:        "tonight-vietnam.firebaseapp.com",
+  projectId:         "tonight-vietnam",
+  storageBucket:     "tonight-vietnam.firebasestorage.app",
+  messagingSenderId: "838063793192",
+  appId:             "1:838063793192:web:595f6ff8fc1a71b474c11d",
+};
+
+const CDN = 'https://www.gstatic.com/firebasejs/10.12.0';
+import { initializeApp }                              from `${CDN}/firebase-app.js`;
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from `${CDN}/firebase-auth.js`;
+import { getFirestore, collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot, orderBy, serverTimestamp } from `${CDN}/firebase-firestore.js`;
+
+const app  = initializeApp(FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+let currentUser    = null;
+let venueData      = null;
+let allEvents      = [];
+let unsub          = null;
+let selectedEmoji  = '🎵';
+let venueRequestId = null;
+
+// ── AUTH STATE ─────────────────────────────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    showLogin();
+    return;
+  }
+  currentUser = user;
+  // Check role
+  try {
+    const snap = await getDocs(query(collection(db,'venue_requests'), where('email','==',user.email), where('status','==','approved')));
+    if (snap.empty) {
+      // Check if pending
+      document.getElementById('loading').classList.add('hide');
+      document.getElementById('denied').classList.remove('hide');
+      return;
+    }
+    venueData = { id: snap.docs[0].id, ...snap.docs[0].data() };
+    venueRequestId = snap.docs[0].id;
+    showApp();
+  } catch(e) {
+    console.error(e);
+    showLogin();
+  }
+});
+
+function showLogin() {
+  document.getElementById('loading').classList.add('hide');
+  document.getElementById('login').classList.remove('hide');
+}
+
+function showApp() {
+  document.getElementById('loading').classList.add('hide');
+  document.getElementById('login').classList.add('hide');
+  document.getElementById('denied').classList.add('hide');
+  document.getElementById('app').classList.add('on');
+  document.getElementById('page-sub').textContent = `Tonight Vietnam · ${currentUser.email}`;
+  document.getElementById('v-name').textContent = venueData.venueName || venueData.venue_name || '—';
+  document.getElementById('v-city').textContent = venueData.city || '—';
+  loadProfile();
+  subscribeEvents();
+}
+
+// ── LOGIN ──────────────────────────────────────────────────────────────────────
+window.doLogin = async function() {
+  const email = document.getElementById('l-email').value.trim();
+  const pw    = document.getElementById('l-pw').value;
+  const btn   = document.getElementById('l-btn');
+  const err   = document.getElementById('l-err');
+  err.classList.remove('on');
+  if (!email || !pw) { document.getElementById('l-err-msg').textContent='Please enter email and password.'; err.classList.add('on'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner spin-sm"></div> Signing in...';
+  try {
+    await signInWithEmailAndPassword(auth, email, pw);
+  } catch(e) {
+    document.getElementById('l-err-msg').textContent = e.code === 'auth/invalid-credential' ? 'Wrong email or password.' : e.message;
+    err.classList.add('on');
+    btn.disabled = false;
+    btn.textContent = 'Sign In to Venue Portal';
+  }
+};
+document.getElementById('l-pw').addEventListener('keydown', e => { if(e.key==='Enter') window.doLogin(); });
+
+window.doSignOut = async function() {
+  if (unsub) unsub();
+  await signOut(auth);
+  location.reload();
+};
+
+// ── EVENTS SUBSCRIPTION ────────────────────────────────────────────────────────
+function subscribeEvents() {
+  if (!currentUser) return;
+  const q = query(collection(db,'events'), where('venueId','==',currentUser.uid), orderBy('createdAt','desc'));
+  unsub = onSnapshot(q, snap => {
+    allEvents = snap.docs.map(d => ({id:d.id,...d.data()}));
+    renderStats();
+    renderRecentEvents();
+    renderAllEvents();
+  });
+}
+
+// ── STATS ──────────────────────────────────────────────────────────────────────
+function renderStats() {
+  const now = new Date();
+  const upcoming = allEvents.filter(e => new Date(e.date) >= now).length;
+  const featured = allEvents.filter(e => e.featured).length;
+  document.getElementById('s-total').textContent    = allEvents.length;
+  document.getElementById('s-upcoming').textContent = upcoming;
+  document.getElementById('s-featured').textContent = featured;
+  document.getElementById('events-count').textContent = allEvents.length;
+}
+
+// ── RECENT EVENTS TABLE ────────────────────────────────────────────────────────
+function renderRecentEvents() {
+  const recent = allEvents.slice(0,5);
+  const tbody = document.getElementById('recent-body');
+  if (!recent.length) {
+    tbody.innerHTML = `<tr><td colspan="4"><div class="empty"><div class="empty-icon">🎫</div><div class="empty-title">No events yet</div><div class="empty-sub">Add your first event to get started</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = recent.map(e => eventRow(e, false)).join('');
+}
+
+function renderAllEvents() {
+  const tbody = document.getElementById('events-body');
+  if (!allEvents.length) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="empty-icon">🎫</div><div class="empty-title">No events yet</div><div class="empty-sub">Add your first event to get discovered</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = allEvents.map(e => eventRow(e, true)).join('');
+}
+
+function eventRow(e, showDel) {
+  const approvalPill = {
+    pending:  `<span class="status-pill" style="background:rgba(249,115,22,.1);color:#f97316">⏳ Pending Review</span>`,
+    approved: `<span class="status-pill" style="background:rgba(34,197,94,.1);color:#22c55e">✅ Live</span>`,
+    rejected: `<span class="status-pill" style="background:rgba(239,68,68,.1);color:#ef4444">❌ Rejected</span>`,
+  }[e.status || 'pending'] || `<span class="status-pill" style="background:rgba(249,115,22,.1);color:#f97316">⏳ Pending</span>`;
+
+  const del = showDel ? `<button class="btn-del" onclick="deleteEvent('${e.id}')">Delete</button>` : '';
+  return `<tr>
+    <td><span style="margin-right:6px">${e.emoji||'🎵'}</span><span class="td-name">${esc(e.title||'—')}</span></td>
+    <td class="td-muted">${shortDate(e.date)}</td>
+    <td class="td-muted">${esc(e.genre||'—')}</td>
+    <td>${approvalPill}${e.featured?'&nbsp;<span class="status-pill" style="background:rgba(245,200,66,.1);color:#f5c842">Featured</span>':''}</td>
+    ${showDel?`<td>${del}</td>`:''}
+  </tr>`;
+}
+
+// ── EMOJI PICKER ───────────────────────────────────────────────────────────────
+window.pickEmoji = function(el) {
+  document.querySelectorAll('.emoji-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedEmoji = el.dataset.e;
+};
+
+// ── ADD EVENT ──────────────────────────────────────────────────────────────────
+window.submitEvent = async function() {
+  const title  = document.getElementById('ev-title').value.trim();
+  const date   = document.getElementById('ev-date').value;
+  const time   = document.getElementById('ev-time').value;
+  const genre  = document.getElementById('ev-genre').value;
+  const desc   = document.getElementById('ev-desc').value.trim();
+  if (!title || !date || !time || !genre || !desc) { toast('Please fill in all required fields'); return; }
+  const btn = document.getElementById('ev-submit');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner spin-sm"></div> Publishing...';
+  try {
+    await addDoc(collection(db,'events'), {
+      venueId:      currentUser.uid,
+      venueName:    venueData.venueName || venueData.venue_name || '',
+      city:         venueData.city || '',
+      title,
+      date,
+      time,
+      genre,
+      emoji:        selectedEmoji,
+      description:  desc,
+      price:        Number(document.getElementById('ev-price').value) || 0,
+      isNew:        true,
+      featured:     document.getElementById('ev-featured').checked,
+      status:       'pending',      // ← Admin must approve before going live
+      emailSent:    false,
+      reminderSent: false,
+      createdAt:    serverTimestamp(),
+      publishedBy:  currentUser.uid,
+    });
+    toast('✅ Event submitted for review! The Tonight team will approve it within 24 hours.');
+    clearForm();
+    nav('events', document.querySelector('.nav-item:nth-child(2)') || document.querySelector('.mobile-tabbar button:nth-child(2)'));
+  } catch(e) {
+    toast(`Error: ${e.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Publish Event';
+  }
+};
+
+window.clearForm = function() {
+  ['ev-title','ev-date','ev-time','ev-genre','ev-desc','ev-price'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('ev-time').value = '21:00';
+  document.getElementById('ev-featured').checked = false;
+  document.querySelectorAll('.emoji-opt').forEach(o => o.classList.remove('selected'));
+  document.querySelector('.emoji-opt').classList.add('selected');
+  selectedEmoji = '🎵';
+};
+
+// ── DELETE EVENT ───────────────────────────────────────────────────────────────
+window.deleteEvent = async function(id) {
+  if (!confirm('Delete this event? This cannot be undone.')) return;
+  try {
+    await deleteDoc(doc(db, 'events', id));
+    toast('Event deleted');
+  } catch(e) { toast(`Error: ${e.message}`); }
+};
+
+// ── PROFILE ────────────────────────────────────────────────────────────────────
+function loadProfile() {
+  if (!venueData) return;
+  document.getElementById('p-vname').value = venueData.venueName || venueData.venue_name || '';
+  document.getElementById('p-city').value  = venueData.city || '';
+  document.getElementById('p-type').value  = venueData.venueType || venueData.venue_type || '';
+  document.getElementById('p-phone').value = venueData.phone || '';
+  document.getElementById('p-ig').value    = venueData.instagram || '';
+  document.getElementById('p-web').value   = venueData.website || '';
+  document.getElementById('p-email').textContent = currentUser.email;
+}
+
+window.saveProfile = async function() {
+  if (!venueRequestId) return;
+  const btn = document.getElementById('p-save');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner spin-sm"></div> Saving...';
+  try {
+    await updateDoc(doc(db,'venue_requests',venueRequestId), {
+      phone:     document.getElementById('p-phone').value.trim(),
+      instagram: document.getElementById('p-ig').value.trim(),
+      website:   document.getElementById('p-web').value.trim(),
+    });
+    toast('✅ Profile saved');
+  } catch(e) { toast(`Error: ${e.message}`); }
+  finally { btn.disabled=false; btn.textContent='Save Changes'; }
+};
+
+// ── NAVIGATION ─────────────────────────────────────────────────────────────────
+const PAGE_TITLES = { overview:'Overview', events:'My Events', add:'Add New Event', profile:'Profile' };
+window.nav = function(page, btn) {
+  document.querySelectorAll('.nav-item,.mobile-tabbar button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll(`.nav-item, .mobile-tabbar button`).forEach(b => {
+    if(b.getAttribute('onclick')?.includes(`'${page}'`)) b.classList.add('active');
+  });
+  document.getElementById('panel-'+page).classList.add('active');
+  document.getElementById('page-title').textContent = PAGE_TITLES[page] || page;
+};
+
+// ── UTILS ──────────────────────────────────────────────────────────────────────
+function shortDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+let toastTimer;
+window.toast = function(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), 3000);
+};
+</script>
+</body>
+</html>

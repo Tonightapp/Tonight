@@ -1,0 +1,100 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ───────────────────────────────────────────────────────
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isStaff() {
+      return isAuthenticated() && getUserRole() == 'staff';
+    }
+
+    function isVenueOwner() {
+      return isAuthenticated() && getUserRole() == 'venue_owner';
+    }
+
+    // ── users/{uid} ────────────────────────────────────────────────────────────
+    match /users/{uid} {
+
+      allow read: if isOwner(uid) || isStaff();
+
+      allow create: if isOwner(uid)
+                    && request.resource.data.role == 'user'
+                    && request.resource.data.keys().hasAll(['email', 'fullName', 'role', 'createdAt']);
+
+      allow update: if isOwner(uid)
+                    && request.resource.data.role == resource.data.role;
+
+      allow delete: if isStaff();
+    }
+
+    // ── venue_requests/{id} ────────────────────────────────────────────────────
+    match /venue_requests/{requestId} {
+
+      allow create: if request.resource.data.keys().hasAll([
+                         'email', 'fullName', 'venueName',
+                         'city', 'venueType', 'description', 'phone',
+                         'status', 'createdAt'
+                       ])
+                    && request.resource.data.status == 'pending';
+
+      allow read: if isStaff()
+                  || (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      allow update, delete: if isStaff();
+    }
+
+    // ── events/{id} ────────────────────────────────────────────────────────────
+    match /events/{eventId} {
+
+      allow read: if true;
+
+      allow create: if isVenueOwner()
+                    && request.resource.data.publishedBy == request.auth.uid
+                    && request.resource.data.keys().hasAll([
+                         'venueId', 'venueName', 'title', 'description',
+                         'date', 'time', 'city', 'emoji',
+                         'isNew', 'featured', 'createdAt', 'publishedBy'
+                       ]);
+
+      allow update: if (isVenueOwner()
+                        && resource.data.publishedBy == request.auth.uid
+                        && request.resource.data.publishedBy == request.auth.uid)
+                    || isStaff();
+
+      allow delete: if isVenueOwner() && resource.data.publishedBy == request.auth.uid
+                    || isStaff();
+    }
+
+    // ── inquiries/{id} ─────────────────────────────────────────────────────────
+    match /inquiries/{inquiryId} {
+
+      allow create: if request.resource.data.keys().hasAll([
+                         'name', 'email', 'message', 'type', 'createdAt'
+                       ])
+                    && request.resource.data.type in ['venue', 'general']
+                    && request.resource.data.message.size() <= 2000
+                    && request.resource.data.name.size() <= 200
+                    && request.resource.data.email.size() <= 254;
+
+      allow read, update, delete: if isStaff();
+    }
+
+    // ── Deny everything else ───────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

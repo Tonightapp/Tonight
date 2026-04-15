@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Join Tonight Vietnam — List Your Venue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:       #080810;
+  --surface:  #0e0e1a;
+  --card:     #13131f;
+  --card2:    #18182a;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.14);
+  --gold:     #f5c842;
+  --gold-dim: rgba(245,200,66,0.10);
+  --gold-glow:rgba(245,200,66,0.20);
+  --green:    #22c55e;
+  --red:      #ef4444;
+  --text:     #f1f5f9;
+  --text2:    #94a3b8;
+  --text3:    #475569;
+}
+html,body{min-height:100%;font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+
+/* ── NAV ── */
+nav{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;height:60px;
+  background:rgba(8,8,16,0.85);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-brand .moon{font-size:20px}
+.nav-brand .logo-text{display:flex;flex-direction:column;line-height:1}
+.nav-brand .t1{font-size:15px;font-weight:800;color:var(--gold);letter-spacing:1px}
+.nav-brand .t2{font-size:9px;font-weight:600;color:var(--text2);letter-spacing:3px}
+.nav-links{display:flex;align-items:center;gap:20px}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:13px;font-weight:500;transition:color .15s}
+.nav-links a:hover{color:var(--text)}
+
+/* ── HERO ── */
+.hero{
+  text-align:center;padding:80px 24px 60px;
+  background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(245,200,66,0.07) 0%,transparent 70%);
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 14px;border-radius:20px;
+  background:var(--gold-dim);border:1px solid rgba(245,200,66,0.25);
+  font-size:11px;font-weight:700;color:var(--gold);letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:28px;
+}
+.hero h1{font-size:clamp(32px,6vw,56px);font-weight:900;line-height:1.1;letter-spacing:-1.5px;margin-bottom:20px}
+.hero h1 span{color:var(--gold)}
+.hero p{font-size:18px;color:var(--text2);max-width:520px;margin:0 auto 36px;line-height:1.6}
+.cta-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:16px 36px;border-radius:12px;
+  background:var(--gold);color:#000;
+  font-size:15px;font-weight:700;text-decoration:none;border:none;cursor:pointer;
+  transition:transform .15s,box-shadow .15s;
+  box-shadow:0 8px 32px rgba(245,200,66,0.3);
+}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(245,200,66,0.4)}
+
+/* ── SOCIAL PROOF ── */
+.social-proof{
+  display:flex;align-items:center;justify-content:center;gap:32px;
+  padding:24px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  background:var(--surface);flex-wrap:wrap;
+}
+.sp-item{text-align:center}
+.sp-num{font-size:24px;font-weight:800;color:var(--gold)}
+.sp-label{font-size:12px;color:var(--text2);margin-top:2px}
+.sp-sep{width:1px;height:40px;background:var(--border)}
+
+/* ── PERKS ── */
+.perks{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:16px;padding:48px 24px;max-width:900px;margin:0 auto;
+}
+.perk-card{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:24px;text-align:center;
+}
+.perk-icon{font-size:28px;margin-bottom:12px}
+.perk-title{font-size:14px;font-weight:700;margin-bottom:6px}
+.perk-desc{font-size:13px;color:var(--text2);line-height:1.5}
+
+/* ── FORM SECTION ── */
+.form-section{
+  max-width:700px;margin:0 auto;padding:0 24px 80px;
+}
+.form-header{text-align:center;margin-bottom:40px;padding-top:16px}
+.form-header h2{font-size:28px;font-weight:800;letter-spacing:-0.5px}
+.form-header p{color:var(--text2);margin-top:8px}
+
+.form-card{
+  background:var(--card);border:1px solid var(--border2);border-radius:20px;
+  padding:36px;
+}
+.form-grid{display:grid;gap:20px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:540px){.form-row{grid-template-columns:1fr}}
+
+.field-label{display:block;font-size:11px;font-weight:700;color:var(--text2);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px}
+.field-label .opt{font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0}
+.input-wrap{
+  display:flex;align-items:center;gap:10px;
+  background:var(--bg);border:1px solid var(--border2);border-radius:10px;
+  padding:12px 14px;transition:border-color .15s;
+}
+.input-wrap:focus-within{border-color:rgba(245,200,66,0.5)}
+.input-wrap.error{border-color:rgba(239,68,68,0.5)}
+.input-wrap svg{width:15px;height:15px;fill:var(--text3);flex-shrink:0}
+.input-wrap input,.input-wrap select,.input-wrap textarea{
+  flex:1;background:none;border:none;outline:none;
+  font-size:14px;font-family:inherit;color:var(--text);
+}
+.input-wrap select option{background:var(--card);color:var(--text)}
+.input-wrap textarea{resize:vertical;min-height:90px;line-height:1.5}
+.input-wrap input::placeholder,.input-wrap textarea::placeholder{color:var(--text3)}
+.field-error{font-size:11px;color:var(--red);margin-top:5px;display:none}
+.field-error.on{display:block}
+
+.char-count{font-size:11px;color:var(--text3);text-align:right;margin-top:4px}
+
+.divider{height:1px;background:var(--border);margin:8px 0}
+.section-label{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+
+.submit-btn{
+  width:100%;padding:16px;border-radius:12px;
+  background:var(--gold);color:#000;
+  font-size:15px;font-weight:700;border:none;cursor:pointer;
+  transition:opacity .15s,transform .15s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:8px;
+}
+.submit-btn:hover{opacity:0.92;transform:translateY(-1px)}
+.submit-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+
+.spinner{width:18px;height:18px;border:2px solid rgba(0,0,0,0.2);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── SUCCESS ── */
+#success{display:none;text-align:center;padding:60px 24px}
+#success.on{display:block}
+.success-icon{font-size:64px;margin-bottom:24px}
+.success-title{font-size:28px;font-weight:800;color:var(--green);margin-bottom:12px}
+.success-msg{font-size:16px;color:var(--text2);line-height:1.6;max-width:480px;margin:0 auto 32px}
+.success-steps{
+  display:inline-flex;flex-direction:column;gap:12px;
+  text-align:left;background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:24px;max-width:420px;width:100%;margin:0 auto;
+}
+.step{display:flex;align-items:flex-start;gap:12px}
+.step-num{
+  width:24px;height:24px;border-radius:50%;
+  background:var(--gold-dim);border:1px solid rgba(245,200,66,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0;margin-top:1px;
+}
+.step-text{font-size:13px;color:var(--text2);line-height:1.5}
+.step-text strong{color:var(--text)}
+
+/* ── FOOTER ── */
+footer{
+  text-align:center;padding:32px 24px;
+  border-top:1px solid var(--border);
+  font-size:12px;color:var(--text3);
+}
+footer a{color:var(--text3);text-decoration:none}
+footer a:hover{color:var(--text2)}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="./landing.html" class="nav-brand">
+    <span class="moon">🌙</span>
+    <div class="logo-text">
+      <span class="t1">TONIGHT</span>
+      <span class="t2">VIETNAM</span>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="./landing.html">Home</a>
+    <a href="./index.html">Staff Portal</a>
+  </div>
+</nav>
+
+<div id="main">
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">🏢 For Venues & Bars</div>
+    <h1>Get Your Venue<br>on <span>Tonight Vietnam</span></h1>
+    <p>Reach thousands of nightlife seekers across Ho Chi Minh City, Hanoi, and Da Nang. Free to list. Setup in 24 hours.</p>
+    <button class="cta-btn" onclick="document.getElementById('form-section').scrollIntoView({behavior:'smooth'})">
+      Apply to Join — It's Free
+    </button>
+  </div>
+
+  <!-- SOCIAL PROOF -->
+  <div class="social-proof">
+    <div class="sp-item"><div class="sp-num">50+</div><div class="sp-label">Venues Listed</div></div>
+    <div class="sp-sep"></div>
+    <div class="sp-item"><div class="sp-num">3</div><div class="sp-label">Cities Live</div></div>
+    <div class="sp-sep"></div>
+    <div class="sp-item"><div class="sp-num">500+</div><div class="sp-label">Events Published</div></div>
+    <div class="sp-sep"></div>
+    <div class="sp-item"><div class="sp-num">24h</div><div class="sp-label">Review Time</div></div>
+  </div>
+
+  <!-- PERKS -->
+  <div class="perks">
+    <div class="perk-card">
+      <div class="perk-icon">📍</div>
+      <div class="perk-title">Get Discovered</div>
+      <div class="perk-desc">Appear in front of locals and tourists searching for nightlife in your city</div>
+    </div>
+    <div class="perk-card">
+      <div class="perk-icon">🎫</div>
+      <div class="perk-title">Publish Events</div>
+      <div class="perk-desc">Add unlimited events — DJ nights, live music, happy hours — and reach your audience instantly</div>
+    </div>
+    <div class="perk-card">
+      <div class="perk-icon">🆓</div>
+      <div class="perk-title">100% Free</div>
+      <div class="perk-desc">No commission, no setup fee. Just fill out the form and the Tonight team will be in touch</div>
+    </div>
+    <div class="perk-card">
+      <div class="perk-icon">⚡</div>
+      <div class="perk-title">Go Live Fast</div>
+      <div class="perk-desc">Applications reviewed within 24 hours. You'll receive login access as soon as you're approved</div>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div class="form-section" id="form-section">
+    <div class="form-header">
+      <h2>Venue Application</h2>
+      <p>Fill in the details below and the Tonight team will review your application</p>
+    </div>
+
+    <div class="form-card">
+      <form class="form-grid" id="join-form" novalidate onsubmit="return false">
+
+        <div class="section-label">Contact Person</div>
+
+        <div class="form-row">
+          <div>
+            <label class="field-label" for="f-name">Full Name</label>
+            <div class="input-wrap" id="w-name">
+              <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+              <input type="text" id="f-name" placeholder="Your full name" autocomplete="name"/>
+            </div>
+            <div class="field-error" id="e-name">Full name is required</div>
+          </div>
+          <div>
+            <label class="field-label" for="f-email">Email Address</label>
+            <div class="input-wrap" id="w-email">
+              <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+              <input type="email" id="f-email" placeholder="your@email.com" autocomplete="email"/>
+            </div>
+            <div class="field-error" id="e-email">Valid email address is required</div>
+          </div>
+        </div>
+
+        <div>
+          <label class="field-label" for="f-phone">Phone Number</label>
+          <div class="input-wrap" id="w-phone">
+            <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+            <input type="tel" id="f-phone" placeholder="+84 xxx xxx xxx" autocomplete="tel"/>
+          </div>
+          <div class="field-error" id="e-phone">Phone number is required</div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="section-label">Venue Details</div>
+
+        <div>
+          <label class="field-label" for="f-vname">Venue Name</label>
+          <div class="input-wrap" id="w-vname">
+            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <input type="text" id="f-vname" placeholder="e.g. Broma Not A Bar"/>
+          </div>
+          <div class="field-error" id="e-vname">Venue name is required</div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label class="field-label" for="f-city">City</label>
+            <div class="input-wrap" id="w-city">
+              <svg viewBox="0 0 24 24"><path d="M15 11V5l-3-3-3 3v2H3v14h18V11h-6zm-8 8H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm6 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm6 12h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>
+              <select id="f-city">
+                <option value="">Select city...</option>
+                <option>Ho Chi Minh City</option>
+                <option>Hanoi</option>
+                <option>Da Nang</option>
+                <option>Nha Trang</option>
+                <option>Hoi An</option>
+                <option>Phu Quoc</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field-error" id="e-city">Please select a city</div>
+          </div>
+          <div>
+            <label class="field-label" for="f-type">Venue Type</label>
+            <div class="input-wrap" id="w-type">
+              <svg viewBox="0 0 24 24"><path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"/></svg>
+              <select id="f-type">
+                <option value="">Select type...</option>
+                <option>Bar</option>
+                <option>Club / Nightclub</option>
+                <option>Restaurant & Bar</option>
+                <option>Rooftop Bar</option>
+                <option>Live Music Venue</option>
+                <option>Beach Club</option>
+                <option>Lounge</option>
+                <option>Sports Bar</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field-error" id="e-type">Please select a venue type</div>
+          </div>
+        </div>
+
+        <div>
+          <label class="field-label" for="f-desc">Tell us about your venue <span class="opt">(required)</span></label>
+          <div class="input-wrap" id="w-desc">
+            <textarea id="f-desc" placeholder="What makes your venue special? Describe the vibe, your events, your crowd..." maxlength="300" oninput="updateChar()"></textarea>
+          </div>
+          <div class="char-count"><span id="char-count">0</span>/300</div>
+          <div class="field-error" id="e-desc">Please describe your venue</div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="section-label">Social & Web <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
+
+        <div class="form-row">
+          <div>
+            <label class="field-label" for="f-ig">Instagram Handle <span class="opt">(optional)</span></label>
+            <div class="input-wrap">
+              <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+              <input type="text" id="f-ig" placeholder="@yourvenue"/>
+            </div>
+          </div>
+          <div>
+            <label class="field-label" for="f-web">Website <span class="opt">(optional)</span></label>
+            <div class="input-wrap">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+              <input type="url" id="f-web" placeholder="https://yourvenue.com"/>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submit-btn" onclick="submitForm()">
+          Submit Application
+        </button>
+
+      </form>
+    </div>
+  </div><!-- /form-section -->
+</div><!-- /main -->
+
+<!-- SUCCESS STATE -->
+<div id="success">
+  <div class="success-icon">✅</div>
+  <div class="success-title">Application Submitted!</div>
+  <div class="success-msg">The Tonight team will review your venue within <strong>24 hours</strong>. You'll receive an email once you're approved and ready to publish events.</div>
+  <div class="success-steps">
+    <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Review</strong> — Tonight team reviews your application (24h)</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Approval</strong> — You receive a login link by email</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Go Live</strong> — Publish your events and start getting discovered</div></div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2025 Tonight Vietnam. All rights reserved. &nbsp;·&nbsp; <a href="#">Privacy</a> &nbsp;·&nbsp; <a href="#">Contact</a></p>
+</footer>
+
+<script type="module">
+// ── FIREBASE CONFIG ────────────────────────────────────────────────────────────
+// ← PASTE YOUR FIREBASE CONFIG HERE (same values as portal/index.html)
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyBHASTMA5bMn5uD_3zT7Y8CoY87N2kJGb0",
+  authDomain:        "tonight-vietnam.firebaseapp.com",
+  projectId:         "tonight-vietnam",
+  storageBucket:     "tonight-vietnam.firebasestorage.app",
+  messagingSenderId: "838063793192",
+  appId:             "1:838063793192:web:595f6ff8fc1a71b474c11d",
+};
+
+const CDN = 'https://www.gstatic.com/firebasejs/10.12.0';
+const { initializeApp } = await import(`${CDN}/firebase-app.js`);
+const { getFirestore, collection, addDoc, serverTimestamp } = await import(`${CDN}/firebase-firestore.js`);
+
+const app = initializeApp(FIREBASE_CONFIG);
+const db  = getFirestore(app);
+
+// ── CHAR COUNTER ───────────────────────────────────────────────────────────────
+window.updateChar = function() {
+  const val = document.getElementById('f-desc').value.length;
+  document.getElementById('char-count').textContent = val;
+};
+
+// ── VALIDATION ─────────────────────────────────────────────────────────────────
+function validate() {
+  let ok = true;
+  const checks = [
+    ['f-name',  'w-name',  'e-name',  v => v.trim().length >= 2],
+    ['f-email', 'w-email', 'e-email', v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)],
+    ['f-phone', 'w-phone', 'e-phone', v => v.trim().length >= 7],
+    ['f-vname', 'w-vname', 'e-vname', v => v.trim().length >= 2],
+    ['f-city',  'w-city',  'e-city',  v => v !== ''],
+    ['f-type',  'w-type',  'e-type',  v => v !== ''],
+    ['f-desc',  'w-desc',  'e-desc',  v => v.trim().length >= 10],
+  ];
+  checks.forEach(([fid, wid, eid, fn]) => {
+    const val = document.getElementById(fid).value;
+    const pass = fn(val);
+    document.getElementById(wid).classList.toggle('error', !pass);
+    document.getElementById(eid).classList.toggle('on', !pass);
+    if (!pass) ok = false;
+  });
+  return ok;
+}
+
+// ── SUBMIT ─────────────────────────────────────────────────────────────────────
+window.submitForm = async function() {
+  if (!validate()) return;
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Submitting...';
+  try {
+    await addDoc(collection(db, 'venue_requests'), {
+      fullName:    document.getElementById('f-name').value.trim(),
+      email:       document.getElementById('f-email').value.trim().toLowerCase(),
+      phone:       document.getElementById('f-phone').value.trim(),
+      venueName:   document.getElementById('f-vname').value.trim(),
+      city:        document.getElementById('f-city').value,
+      venueType:   document.getElementById('f-type').value,
+      description: document.getElementById('f-desc').value.trim(),
+      instagram:   document.getElementById('f-ig').value.trim(),
+      website:     document.getElementById('f-web').value.trim(),
+      status:      'pending',
+      createdAt:   serverTimestamp(),
+    });
+    document.getElementById('main').style.display = 'none';
+    document.getElementById('success').classList.add('on');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  } catch(err) {
+    console.error(err);
+    btn.disabled = false;
+    btn.innerHTML = 'Submit Application';
+    alert('Something went wrong. Please try again or contact us directly.');
+  }
+};
+</script>
+</body>
+</html>

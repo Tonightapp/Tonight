@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Tonight Vietnam — Admin Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:       #080810;
+  --surface:  #0e0e1a;
+  --card:     #13131f;
+  --card2:    #18182a;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.12);
+  --gold:     #f5c842;
+  --gold-dim: rgba(245,200,66,0.12);
+  --green:    #22c55e;
+  --red:      #ef4444;
+  --blue:     #3b82f6;
+  --orange:   #f97316;
+  --purple:   #a855f7;
+  --text:     #f1f5f9;
+  --text2:    #94a3b8;
+  --text3:    #475569;
+  --sidebar-w:220px;
+}
+html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+
+/* ─── UTILS ─────────────────────────────────────────────── */
+.hide{display:none!important}
+.flex{display:flex}
+.col{flex-direction:column}
+.items-center{align-items:center}
+.justify-between{justify-content:space-between}
+.gap-2{gap:8px}
+.gap-3{gap:12px}
+.gap-4{gap:16px}
+.flex-1{flex:1}
+.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ─── LOADING ────────────────────────────────────────────── */
+#loading{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  z-index:999;
+}
+.spinner{width:32px;height:32px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-label{font-size:13px;color:var(--text2);font-weight:500}
+
+/* ─── LOGIN ──────────────────────────────────────────────── */
+#login{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(ellipse 80% 40% at 50% 0%,rgba(245,200,66,0.05) 0%,transparent 70%);
+}
+.login-card{
+  width:100%;max-width:400px;
+  background:var(--card);border:1px solid var(--border2);border-radius:16px;
+  overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.6);
+}
+.login-head{
+  padding:36px 32px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;
+  border-bottom:1px solid var(--border);
+}
+.login-mark{
+  width:48px;height:48px;border-radius:12px;
+  background:var(--gold-dim);border:1px solid rgba(245,200,66,0.25);
+  display:flex;align-items:center;justify-content:center;
+}
+.login-mark svg{width:22px;height:22px;fill:var(--gold)}
+.login-brand{font-size:18px;font-weight:800;color:var(--gold);letter-spacing:-0.3px}
+.login-tag{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--text3);text-transform:uppercase}
+.login-body{padding:28px 32px}
+.field-label{display:block;font-size:11px;font-weight:600;color:var(--text2);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px}
+.input-row{
+  display:flex;align-items:center;gap:10px;
+  background:var(--bg);border:1px solid var(--border2);border-radius:10px;
+  padding:11px 14px;transition:border-color .15s;
+}
+.input-row:focus-within{border-color:rgba(245,200,66,0.4)}
+.input-row svg{width:15px;height:15px;fill:var(--text3);flex-shrink:0}
+.input-row input{
+  flex:1;background:none;border:none;outline:none;
+  font-size:14px;font-family:inherit;color:var(--text);
+}
+.input-row input::placeholder{color:var(--text3)}
+.mt-field{margin-top:18px}
+.err-box{
+  display:none;align-items:flex-start;gap:8px;
+  background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);
+  border-radius:8px;padding:10px 12px;margin-top:14px;
+  font-size:12px;color:var(--red);line-height:1.5;
+}
+.err-box.on{display:flex}
+.err-box svg{width:14px;height:14px;fill:var(--red);flex-shrink:0;margin-top:1px}
+.login-btn{
+  width:100%;margin-top:20px;padding:12px;
+  background:var(--gold);border:none;border-radius:10px;
+  font-size:14px;font-weight:700;font-family:inherit;color:#000;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:opacity .15s;
+}
+.login-btn:hover{opacity:.9}
+.login-btn:disabled{opacity:.6;cursor:not-allowed}
+.login-foot{
+  padding:14px 32px;border-top:1px solid var(--border);
+  background:var(--surface);
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;color:var(--text3);
+}
+.login-foot svg{width:12px;height:12px;fill:var(--text3)}
+
+/* ─── LAYOUT ─────────────────────────────────────────────── */
+#app{display:none;height:100vh;overflow:hidden}
+#app.on{display:flex}
+
+/* Sidebar */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sidebar-logo{
+  display:flex;align-items:center;gap:10px;
+  padding:20px 18px 18px;border-bottom:1px solid var(--border);
+}
+.sidebar-logo-icon{
+  width:30px;height:30px;border-radius:8px;
+  background:var(--gold-dim);border:1px solid rgba(245,200,66,0.2);
+  display:flex;align-items:center;justify-content:center;
+}
+.sidebar-logo-icon svg{width:14px;height:14px;fill:var(--gold)}
+.sidebar-brand{font-size:13px;font-weight:800;color:var(--gold)}
+.sidebar-sub{font-size:10px;color:var(--text3);font-weight:500;margin-top:1px}
+
+.sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.nav-label{
+  font-size:10px;font-weight:700;letter-spacing:1px;
+  color:var(--text3);text-transform:uppercase;
+  padding:10px 8px 6px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:8px;cursor:pointer;
+  font-size:13px;font-weight:500;color:var(--text2);
+  transition:all .12s;border:none;background:none;width:100%;text-align:left;
+  font-family:inherit;
+}
+.nav-item:hover{background:var(--card);color:var(--text)}
+.nav-item.active{background:var(--gold-dim);color:var(--gold);font-weight:600}
+.nav-item svg{width:15px;height:15px;fill:currentColor;flex-shrink:0}
+.nav-badge{
+  margin-left:auto;background:var(--orange);color:#fff;
+  font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;
+  min-width:18px;text-align:center;
+}
+.nav-badge.hide{display:none}
+
+.sidebar-footer{
+  padding:14px 10px;border-top:1px solid var(--border);
+}
+.user-row{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:8px;
+}
+.user-avatar{
+  width:30px;height:30px;border-radius:50%;
+  background:var(--gold-dim);border:1px solid rgba(245,200,66,0.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:var(--gold);flex-shrink:0;
+}
+.user-name{font-size:12px;font-weight:600;color:var(--text);flex:1;min-width:0}
+.user-email{font-size:10px;color:var(--text3);flex:1;min-width:0}
+.signout-btn{
+  display:flex;align-items:center;gap:8px;width:100%;margin-top:4px;
+  padding:8px 10px;border-radius:8px;border:none;background:none;
+  font-size:12px;font-weight:600;font-family:inherit;color:var(--red);
+  cursor:pointer;transition:background .12s;
+}
+.signout-btn:hover{background:rgba(239,68,68,0.08)}
+.signout-btn svg{width:14px;height:14px;fill:var(--red)}
+
+/* Main */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 24px;border-bottom:1px solid var(--border);
+  background:var(--surface);flex-shrink:0;
+}
+.topbar-title{font-size:16px;font-weight:700;color:var(--text)}
+.topbar-sub{font-size:12px;color:var(--text2);font-weight:400;margin-top:1px}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.icon-btn{
+  width:32px;height:32px;border-radius:8px;
+  background:var(--card);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .12s;
+}
+.icon-btn:hover{border-color:var(--border2);background:var(--card2)}
+.icon-btn svg{width:15px;height:15px;fill:var(--text2)}
+.live-dot{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;color:var(--green);
+}
+.live-dot::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.content{flex:1;overflow-y:auto;padding:24px}
+.panel{display:none}
+.panel.active{display:block}
+
+/* ─── STATS ROW ──────────────────────────────────────────── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+@media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:18px;display:flex;flex-direction:column;gap:6px;
+  transition:border-color .15s;
+}
+.stat-card.alert{border-color:rgba(249,115,22,0.3)}
+.stat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.stat-icon{
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+}
+.stat-icon svg{width:15px;height:15px}
+.stat-change{font-size:11px;font-weight:600;color:var(--green)}
+.stat-val{font-size:26px;font-weight:800;letter-spacing:-0.5px;line-height:1}
+.stat-label{font-size:12px;color:var(--text2);font-weight:500}
+.stat-note{font-size:11px;color:var(--text3)}
+
+/* ─── SECTION CARD ───────────────────────────────────────── */
+.section-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;margin-bottom:20px;
+}
+.section-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:1px solid var(--border);
+}
+.section-title{font-size:13px;font-weight:700;color:var(--text)}
+.section-meta{font-size:11px;color:var(--text3)}
+.count-pill{
+  font-size:11px;font-weight:700;color:var(--text3);
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:6px;padding:2px 8px;
+}
+
+/* ─── TABLE ──────────────────────────────────────────────── */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{
+  font-size:11px;font-weight:600;color:var(--text3);
+  text-align:left;padding:10px 18px;letter-spacing:0.5px;
+  text-transform:uppercase;border-bottom:1px solid var(--border);
+  background:var(--surface);
+}
+.data-table td{
+  padding:13px 18px;border-bottom:1px solid var(--border);
+  font-size:13px;color:var(--text2);vertical-align:middle;
+}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:rgba(255,255,255,0.015)}
+.td-name{font-weight:600;color:var(--text)}
+.td-mono{font-family:monospace;font-size:12px;color:var(--text2)}
+.td-muted{color:var(--text3);font-size:12px}
+
+/* Role pill */
+.role-pill{
+  display:inline-flex;align-items:center;
+  font-size:10px;font-weight:700;letter-spacing:0.3px;
+  border-radius:5px;padding:3px 8px;
+}
+.role-user{background:rgba(148,163,184,0.1);color:#94a3b8}
+.role-venue_owner{background:rgba(245,200,66,0.12);color:#f5c842}
+.role-admin{background:rgba(255,255,255,0.08);color:#f1f5f9}
+.role-pro{background:rgba(168,85,247,0.12);color:#a855f7}
+
+/* Status pill */
+.status-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:600;border-radius:5px;padding:3px 9px;
+}
+.status-pill::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
+.status-pending{background:rgba(249,115,22,0.1);color:var(--orange)}
+.status-approved{background:rgba(34,197,94,0.1);color:var(--green)}
+.status-rejected{background:rgba(239,68,68,0.1);color:var(--red)}
+
+/* Avatar initials */
+.av{
+  width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;
+}
+.av-user{background:rgba(148,163,184,0.1);color:#94a3b8}
+.av-venue_owner{background:rgba(245,200,66,0.12);color:#f5c842}
+.av-admin{background:rgba(255,255,255,0.08);color:#f1f5f9}
+.av-pro{background:rgba(168,85,247,0.12);color:#a855f7}
+.name-cell{display:flex;align-items:center;gap:10px}
+
+/* ─── SEARCH + FILTERS ───────────────────────────────────── */
+.toolbar{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border)}
+.search-wrap{
+  display:flex;align-items:center;gap:8px;flex:1;max-width:320px;
+  background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;
+}
+.search-wrap:focus-within{border-color:rgba(245,200,66,0.3)}
+.search-wrap svg{width:14px;height:14px;fill:var(--text3);flex-shrink:0}
+.search-wrap input{flex:1;background:none;border:none;outline:none;font-size:13px;font-family:inherit;color:var(--text)}
+.search-wrap input::placeholder{color:var(--text3)}
+.filter-tabs{display:flex;gap:4px;margin-left:auto}
+.ftab{
+  padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;
+  border:1px solid var(--border);background:none;font-family:inherit;
+  color:var(--text3);cursor:pointer;transition:all .12s;display:flex;align-items:center;gap:6px;
+}
+.ftab:hover{background:var(--card2);color:var(--text2)}
+.ftab.on-pending{background:rgba(249,115,22,0.1);border-color:rgba(249,115,22,0.3);color:var(--orange)}
+.ftab.on-approved{background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.3);color:var(--green)}
+.ftab.on-rejected{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);color:var(--red)}
+.ftab-count{
+  font-size:10px;font-weight:800;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,0.08);
+}
+.ftab.on-pending .ftab-count{background:var(--orange);color:#000}
+.ftab.on-approved .ftab-count{background:var(--green);color:#000}
+.ftab.on-rejected .ftab-count{background:var(--red);color:#fff}
+
+/* ─── ACTION BUTTONS ─────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;
+  font-family:inherit;cursor:pointer;border:none;transition:all .12s;
+}
+.btn-approve{background:var(--green);color:#000}
+.btn-approve:hover{opacity:.88}
+.btn-reject{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2)}
+.btn-reject:hover{background:rgba(239,68,68,0.18)}
+.action-cell{display:flex;gap:6px}
+
+/* ─── VENUE REQUEST CARD (mobile/detail) ─────────────────── */
+.request-detail{
+  padding:16px 18px;border-bottom:1px solid var(--border);
+}
+.req-venue{font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px}
+.req-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.req-tag{
+  font-size:11px;color:var(--text2);background:var(--surface);
+  border:1px solid var(--border);border-radius:5px;padding:3px 8px;
+}
+.req-desc{font-size:13px;color:var(--text3);line-height:1.6}
+
+/* ─── OVERVIEW BARS LIST ─────────────────────────────────── */
+.bars-list{padding:0}
+.bar-row{
+  display:flex;align-items:center;gap:14px;
+  padding:13px 18px;border-bottom:1px solid var(--border);
+}
+.bar-row:last-child{border-bottom:none}
+.bar-icon{
+  width:36px;height:36px;border-radius:9px;flex-shrink:0;
+  background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+}
+.bar-info{flex:1;min-width:0}
+.bar-name{font-size:13px;font-weight:600;color:var(--text)}
+.bar-city{font-size:11px;color:var(--text3);margin-top:1px}
+.bar-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.live-tag{
+  font-size:9px;font-weight:800;letter-spacing:0.7px;
+  background:rgba(34,197,94,0.1);color:var(--green);
+  border:1px solid rgba(34,197,94,0.2);border-radius:4px;padding:2px 6px;
+}
+.bar-time{font-size:11px;color:var(--text3)}
+
+/* ─── EMPTY STATE ────────────────────────────────────────── */
+.empty{
+  display:flex;flex-direction:column;align-items:center;
+  padding:48px 24px;gap:8px;
+}
+.empty-icon{font-size:28px;margin-bottom:4px}
+.empty-title{font-size:13px;font-weight:600;color:var(--text2)}
+.empty-sub{font-size:12px;color:var(--text3)}
+
+/* ─── TOAST ──────────────────────────────────────────────── */
+#toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);
+  background:var(--card2);border:1px solid var(--border2);
+  border-radius:10px;padding:10px 18px;
+  font-size:13px;font-weight:500;color:var(--text);
+  box-shadow:0 8px 32px rgba(0,0,0,0.5);
+  opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;z-index:100;
+}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ─── MOBILE OVERRIDE ────────────────────────────────────── */
+@media(max-width:720px){
+  .sidebar{display:none}
+  .mobile-tabbar{
+    display:flex;border-top:1px solid var(--border);
+    background:var(--surface);flex-shrink:0;order:1;
+  }
+  #app.on{flex-direction:column}
+  .main{order:0}
+  .content{padding:16px}
+  .stats-row{grid-template-columns:1fr 1fr}
+}
+@media(min-width:721px){
+  .mobile-tabbar{display:none}
+}
+.mobile-tabbar button{
+  flex:1;padding:10px 4px;background:none;border:none;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  font-size:9px;font-weight:600;font-family:inherit;
+  color:var(--text3);cursor:pointer;position:relative;
+}
+.mobile-tabbar button.active{color:var(--gold)}
+.mobile-tabbar button svg{width:18px;height:18px;fill:currentColor}
+.mtab-badge{
+  position:absolute;top:6px;right:calc(50% - 14px);
+  width:7px;height:7px;border-radius:50%;background:var(--orange);
+  border:1.5px solid var(--surface);
+}
+
+/* ─── FIREBASE SETUP PROMPT ──────────────────────────────── */
+#setup-prompt{
+  position:fixed;inset:0;background:rgba(8,8,16,0.9);backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;z-index:998;padding:24px;
+}
+.setup-card{
+  background:var(--card);border:1px solid var(--border2);border-radius:16px;
+  padding:32px;max-width:500px;width:100%;
+}
+.setup-title{font-size:18px;font-weight:800;color:var(--text);margin-bottom:8px}
+.setup-sub{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:20px}
+.setup-code{
+  background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:16px;font-size:12px;font-family:monospace;color:var(--text2);
+  line-height:1.8;white-space:pre-wrap;word-break:break-all;margin-bottom:20px;
+}
+.setup-link{
+  display:inline-flex;align-items:center;gap:6px;
+  color:var(--gold);font-size:13px;font-weight:600;text-decoration:none;
+}
+.setup-link:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="loading-label">Tonight Vietnam Portal</div>
+</div>
+
+<!-- Firebase Setup Prompt (shown if config missing) -->
+<div id="setup-prompt" class="hide">
+  <div class="setup-card">
+    <div class="setup-title">🔧 Connect Firebase</div>
+    <div class="setup-sub">
+      Open <strong>portal/index.html</strong>, find the <code>FIREBASE_CONFIG</code> block at the top of the script tag, and paste your Firebase project credentials:
+    </div>
+    <div class="setup-code">const FIREBASE_CONFIG = {
+  apiKey:            "AIza...",
+  authDomain:        "your-project.firebaseapp.com",
+  projectId:         "your-project-id",
+  storageBucket:     "your-project.appspot.com",
+  messagingSenderId: "123456789",
+  appId:             "1:123:web:abc..."
+};</div>
+    <a class="setup-link" href="https://console.firebase.google.com" target="_blank">
+      → Open Firebase Console
+    </a>
+  </div>
+</div>
+
+<!-- Login -->
+<div id="login" class="hide">
+  <div class="login-card">
+    <div class="login-head">
+      <div class="login-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.25 3.4 10.15 8 11.35C16.6 22.15 20 17.25 20 12V6l-8-4z"/></svg>
+      </div>
+      <div class="login-brand">Tonight Vietnam</div>
+      <div class="login-tag">Staff Portal</div>
+    </div>
+    <div class="login-body">
+      <label class="field-label">Email address</label>
+      <div class="input-row">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        <input id="login-email" type="email" placeholder="admin@tonightvietnam.com" autocomplete="email"/>
+      </div>
+      <label class="field-label mt-field">Password</label>
+      <div class="input-row">
+        <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+        <input id="login-pw" type="password" placeholder="••••••••••" autocomplete="current-password"/>
+      </div>
+      <div class="err-box" id="err-box">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+        <span id="err-msg"></span>
+      </div>
+      <button class="login-btn" id="login-btn" onclick="doLogin()">
+        <svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:#000"><path d="M12 2L4 6v6c0 5.25 3.4 10.15 8 11.35C16.6 22.15 20 17.25 20 12V6l-8-4z"/></svg>
+        Sign In to Portal
+      </button>
+    </div>
+    <div class="login-foot">
+      <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+      Authorised staff only · Tonight Vietnam
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.25 3.4 10.15 8 11.35C16.6 22.15 20 17.25 20 12V6l-8-4z"/></svg>
+      </div>
+      <div>
+        <div class="sidebar-brand">Tonight Vietnam</div>
+        <div class="sidebar-sub">Admin Portal</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-label">Main</div>
+      <button class="nav-item active" onclick="nav('overview',this)">
+        <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+        Overview
+      </button>
+      <button class="nav-item" onclick="nav('members',this)">
+        <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        Members
+      </button>
+      <button class="nav-item" onclick="nav('venues',this)">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        Venues
+        <span class="nav-badge hide" id="venues-badge">0</span>
+      </button>
+      <button class="nav-item" onclick="nav('events',this)">
+        <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.35C18 2.99 16.01 1 13.65 1c-1.3 0-2.48.56-3.33 1.44l-.65.72-.65-.72C8.15 1.56 6.96 1 5.67 1 3.31 1 1.32 2.99 1.32 5.35c0 .46.08.9.17 1.3L0 8v2l2 1v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V11l2-1V8l-4-2zm-8 13H6v-2h6v2zm0-4H6v-2h6v2zm6 4h-4v-6h4v6z"/></svg>
+        Events
+        <span class="nav-badge hide" id="events-badge">0</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-row">
+        <div class="user-avatar" id="user-av">A</div>
+        <div style="flex:1;min-width:0">
+          <div class="user-name" id="user-name">Admin</div>
+          <div class="user-email truncate" id="user-email">—</div>
+        </div>
+      </div>
+      <button class="signout-btn" onclick="doSignOut()">
+        <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="page-title">Overview</div>
+        <div class="topbar-sub" id="page-sub">Tonight Vietnam · Admin</div>
+      </div>
+      <div class="topbar-actions">
+        <div class="live-dot" id="live-dot" style="display:none">Live</div>
+        <div class="icon-btn" onclick="refresh()" title="Refresh">
+          <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ── OVERVIEW ── -->
+      <div class="panel active" id="panel-overview">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-top">
+              <div class="stat-icon" style="background:rgba(168,85,247,0.1)">
+                <svg viewBox="0 0 24 24" style="fill:#a855f7"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+              </div>
+            </div>
+            <div class="stat-val" id="s-members" style="color:#a855f7">—</div>
+            <div class="stat-label">Total Members</div>
+            <div class="stat-note">registered accounts</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-top">
+              <div class="stat-icon" style="background:rgba(34,197,94,0.1)">
+                <svg viewBox="0 0 24 24" style="fill:#22c55e"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+              </div>
+              <div class="stat-change" id="s-week-label">+0 this week</div>
+            </div>
+            <div class="stat-val" id="s-week" style="color:#22c55e">—</div>
+            <div class="stat-label">New Sign-Ups</div>
+            <div class="stat-note">last 7 days</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-top">
+              <div class="stat-icon" style="background:rgba(59,130,246,0.1)">
+                <svg viewBox="0 0 24 24" style="fill:#3b82f6"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.35C18 2.99 16.01 1 13.65 1c-1.3 0-2.48.56-3.33 1.44l-.65.72-.65-.72C8.15 1.56 6.96 1 5.67 1 3.31 1 1.32 2.99 1.32 5.35c0 .46.08.9.17 1.3L0 8v2l2 1v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V11l2-1V8l-4-2z"/></svg>
+              </div>
+            </div>
+            <div class="stat-val" id="s-events" style="color:#3b82f6">—</div>
+            <div class="stat-label">Live Events</div>
+            <div class="stat-note">published in app</div>
+          </div>
+          <div class="stat-card alert" id="s-pending-card">
+            <div class="stat-top">
+              <div class="stat-icon" style="background:rgba(249,115,22,0.1)">
+                <svg viewBox="0 0 24 24" style="fill:#f97316"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+              </div>
+            </div>
+            <div class="stat-val" id="s-pending" style="color:#f97316">—</div>
+            <div class="stat-label">Pending Reviews</div>
+            <div class="stat-note">venue applications</div>
+          </div>
+        </div>
+
+        <!-- New Bars -->
+        <div class="section-card">
+          <div class="section-head">
+            <div class="section-title">Newly Joined Bars &amp; Venues</div>
+            <div class="count-pill" id="bars-count">0</div>
+          </div>
+          <div id="bars-list"><div class="empty"><div class="empty-icon">🏢</div><div class="empty-title">No venues approved yet</div></div></div>
+        </div>
+
+        <!-- New Sign-ups -->
+        <div class="section-card">
+          <div class="section-head">
+            <div class="section-title">New Community Sign-Ups</div>
+            <div class="count-pill" id="new-signups-count">0</div>
+          </div>
+          <table class="data-table" id="new-signups-table">
+            <thead><tr><th>Member</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead>
+            <tbody id="new-signups-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── MEMBERS ── -->
+      <div class="panel" id="panel-members">
+        <div class="section-card">
+          <div class="section-head">
+            <div class="section-title">All Members</div>
+            <div class="count-pill" id="all-members-count">—</div>
+          </div>
+          <div class="toolbar">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+              <input type="text" placeholder="Search name, email or role…" oninput="filterMembers(this.value)" id="member-search"/>
+            </div>
+          </div>
+          <table class="data-table">
+            <thead><tr><th>Member</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead>
+            <tbody id="members-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── VENUES ── -->
+      <div class="panel" id="panel-venues">
+        <div class="section-card">
+          <div class="section-head">
+            <div class="section-title">Venue Applications</div>
+            <div class="count-pill" id="venue-req-count">—</div>
+          </div>
+          <div class="toolbar">
+            <div class="filter-tabs" id="venue-filter-tabs"></div>
+          </div>
+          <div id="venue-list"></div>
+        </div>
+      </div>
+
+      <!-- ── EVENTS ── -->
+      <div class="panel" id="panel-events">
+        <div class="section-card">
+          <div class="section-head">
+            <div>
+              <div class="section-title">Events</div>
+              <div style="font-size:12px;color:var(--text3);margin-top:2px">Approve events to publish them + auto-email all users</div>
+            </div>
+            <div class="count-pill" id="events-count">—</div>
+          </div>
+          <div class="filter-tabs" id="event-filter-tabs" style="margin-bottom:12px"></div>
+          <div id="event-list"></div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+
+    <!-- Mobile Tab Bar -->
+    <div class="mobile-tabbar">
+      <button onclick="nav('overview',this)" class="active">
+        <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+        Overview
+      </button>
+      <button onclick="nav('members',this)">
+        <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        Members
+      </button>
+      <button onclick="nav('venues',this)" id="m-venues-btn">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        Venues
+        <div class="mtab-badge hide" id="m-venue-badge"></div>
+      </button>
+      <button onclick="nav('events',this)">
+        <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.35C18 2.99 16.01 1 13.65 1c-1.3 0-2.48.56-3.33 1.44l-.65.72-.65-.72C8.15 1.56 6.96 1 5.67 1 3.31 1 1.32 2.99 1.32 5.35c0 .46.08.9.17 1.3L0 8v2l2 1v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V11l2-1V8l-4-2z"/></svg>
+        Events
+      </button>
+    </div>
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<div id="toast"></div>
+
+<!-- ════════════════════════════════════════════════════════
+     FIREBASE — paste your config below
+═════════════════════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp }                           from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword,
+         onAuthStateChanged, signOut }             from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, doc,
+         query, orderBy, where, limit,
+         onSnapshot, updateDoc, getCountFromServer,
+         serverTimestamp }                         from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ── 🔧 PASTE YOUR FIREBASE CONFIG HERE ───────────────────
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyBHASTMA5bMn5uD_3zT7Y8CoY87N2kJGb0",
+  authDomain:        "tonight-vietnam.firebaseapp.com",
+  projectId:         "tonight-vietnam",
+  storageBucket:     "tonight-vietnam.firebasestorage.app",
+  messagingSenderId: "838063793192",
+  appId:             "1:838063793192:web:595f6ff8fc1a71b474c11d",
+  measurementId:     "G-F2ES9FFJGW"
+};
+// ─────────────────────────────────────────────────────────
+
+const ADMIN_EMAIL = 'app.tonigh1@gmail.com';
+
+// Check if config is filled in
+const configMissing = Object.values(FIREBASE_CONFIG).some(v => v.startsWith('PASTE_'));
+
+if (configMissing) {
+  document.getElementById('loading').classList.add('hide');
+  document.getElementById('setup-prompt').classList.remove('hide');
+  throw new Error('Firebase config not set');
+}
+
+const app  = initializeApp(FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+// ── STATE ─────────────────────────────────────────────────
+let allMembers  = [];
+let allRequests = [];
+let allEvents   = [];
+let venueFilter = 'pending';
+let unsubs      = [];
+
+// ── AUTH ──────────────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+  document.getElementById('loading').classList.add('hide');
+  if (!user) { showLogin(); return; }
+
+  // Verify admin role from Firestore
+  const snap = await getCountFromServer(
+    query(collection(db,'users'), where('uid','==',user.uid), where('role','==','admin'))
+  );
+  if (snap.data().count === 0) {
+    await signOut(auth);
+    showErr('Access denied. Staff accounts only.');
+    showLogin();
+    return;
+  }
+  showApp(user);
+});
+
+window.doLogin = async function() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw    = document.getElementById('login-pw').value;
+  const btn   = document.getElementById('login-btn');
+  if (!email || !pw) { showErr('Please enter your email and password.'); return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    await signInWithEmailAndPassword(auth, email, pw);
+  } catch(e) {
+    showErr('Incorrect email or password.');
+    btn.disabled = false; btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:#000"><path d="M12 2L4 6v6c0 5.25 3.4 10.15 8 11.35C16.6 22.15 20 17.25 20 12V6l-8-4z"/></svg> Sign In to Portal`;
+  }
+};
+
+window.doSignOut = async function() {
+  unsubs.forEach(u => u());
+  await signOut(auth);
+};
+
+document.getElementById('login-pw').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+// ── SHOW SCREENS ──────────────────────────────────────────
+function showLogin() {
+  document.getElementById('login').classList.remove('hide');
+  document.getElementById('app').classList.remove('on');
+}
+
+function showApp(user) {
+  document.getElementById('login').classList.add('hide');
+  document.getElementById('app').classList.add('on');
+  document.getElementById('user-av').textContent   = (user.displayName || user.email || 'A')[0].toUpperCase();
+  document.getElementById('user-name').textContent  = user.displayName || 'Admin';
+  document.getElementById('user-email').textContent = user.email;
+  document.getElementById('page-sub').textContent   = `Tonight Vietnam · ${user.email}`;
+  document.getElementById('live-dot').style.display = 'flex';
+  subscribeAll();
+}
+
+function showErr(msg) {
+  const box = document.getElementById('err-box');
+  document.getElementById('err-msg').textContent = msg;
+  box.classList.add('on');
+}
+
+// ── REALTIME SUBSCRIPTIONS ────────────────────────────────
+function subscribeAll() {
+  unsubs.push(
+    onSnapshot(query(collection(db,'users'), orderBy('createdAt','desc')), snap => {
+      allMembers = snap.docs.map(d => ({id:d.id,...d.data()}));
+      renderStats();
+      renderNewSignups();
+      renderMembersTable(document.getElementById('member-search')?.value || '');
+    }),
+    onSnapshot(query(collection(db,'venue_requests'), orderBy('createdAt','desc')), snap => {
+      allRequests = snap.docs.map(d => ({id:d.id,...d.data()}));
+      renderStats();
+      renderBars();
+      renderVenueFilters();
+      renderVenueList();
+    }),
+    onSnapshot(query(collection(db,'events'), orderBy('createdAt','desc')), snap => {
+      allEvents = snap.docs.map(d => ({id:d.id,...d.data()}));
+      renderStats();
+      renderEventsTable();
+    })
+  );
+}
+
+// ── STATS ─────────────────────────────────────────────────
+function renderStats() {
+  const weekAgo = Date.now() - 7*24*60*60*1000;
+  const newThisWeek = allMembers.filter(m => m.createdAt?.toMillis?.() > weekAgo).length;
+  const pending     = allRequests.filter(r => r.status === 'pending').length;
+
+  document.getElementById('s-members').textContent   = allMembers.length;
+  document.getElementById('s-week').textContent       = newThisWeek;
+  document.getElementById('s-week-label').textContent = `+${newThisWeek} this week`;
+  document.getElementById('s-events').textContent     = allEvents.length;
+  document.getElementById('s-pending').textContent    = pending;
+
+  // Badge
+  const badge  = document.getElementById('venues-badge');
+  const mbadge = document.getElementById('m-venue-badge');
+  if (pending > 0) {
+    badge.textContent = pending; badge.classList.remove('hide');
+    mbadge.classList.remove('hide');
+  } else {
+    badge.classList.add('hide'); mbadge.classList.add('hide');
+  }
+  document.getElementById('s-pending-card').className = pending > 0 ? 'stat-card alert' : 'stat-card';
+}
+
+// ── BARS (approved venues) ────────────────────────────────
+function renderBars() {
+  const bars = allRequests.filter(r => r.status === 'approved').slice(0,8);
+  document.getElementById('bars-count').textContent = bars.length;
+  const el = document.getElementById('bars-list');
+  if (!bars.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🏢</div><div class="empty-title">No venues approved yet</div></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="bars-list">${bars.map(b => `
+    <div class="bar-row">
+      <div class="bar-icon">🏢</div>
+      <div class="bar-info">
+        <div class="bar-name">${esc(b.venueName||b.venue_name||'—')}</div>
+        <div class="bar-city">${esc(b.city||'—')}</div>
+      </div>
+      <div class="bar-right">
+        <div class="live-tag">LIVE</div>
+        <div class="bar-time">${timeAgo(b.reviewedAt)}</div>
+      </div>
+    </div>
+  `).join('')}</div>`;
+}
+
+// ── NEW SIGN-UPS (overview) ───────────────────────────────
+function renderNewSignups() {
+  const recent = allMembers.slice(0,8);
+  document.getElementById('new-signups-count').textContent = allMembers.length;
+  const tbody = document.getElementById('new-signups-body');
+  if (!recent.length) { tbody.innerHTML = `<tr><td colspan="4"><div class="empty"><div class="empty-icon">👤</div><div class="empty-title">No members yet</div></div></td></tr>`; return; }
+  tbody.innerHTML = recent.map(m => memberRow(m)).join('');
+}
+
+// ── MEMBERS TABLE ─────────────────────────────────────────
+window.filterMembers = function(q) {
+  const ql = q.toLowerCase();
+  const filtered = ql
+    ? allMembers.filter(m => (m.fullName||m.full_name||'').toLowerCase().includes(ql) || (m.email||'').toLowerCase().includes(ql) || (m.role||'').includes(ql))
+    : allMembers;
+  document.getElementById('all-members-count').textContent = filtered.length;
+  document.getElementById('members-body').innerHTML = filtered.map(m => memberRow(m)).join('') || emptyRow('No results found','🔍');
+};
+
+function renderMembersTable(q) {
+  document.getElementById('all-members-count').textContent = allMembers.length;
+  filterMembers(q);
+}
+
+function memberRow(m) {
+  const name  = esc(m.fullName || m.full_name || m.email?.split('@')[0] || 'Unknown');
+  const email = esc(m.email || '—');
+  const role  = m.role || 'user';
+  return `<tr>
+    <td><div class="name-cell"><div class="av av-${role}">${name[0].toUpperCase()}</div><span class="td-name">${name}</span></div></td>
+    <td class="td-mono">${email}</td>
+    <td><span class="role-pill role-${role}">${role}</span></td>
+    <td class="td-muted">${timeAgo(m.createdAt)}</td>
+  </tr>`;
+}
+
+// ── VENUE FILTERS ─────────────────────────────────────────
+function renderVenueFilters() {
+  const counts = { pending:0, approved:0, rejected:0 };
+  allRequests.forEach(r => { if(counts[r.status]!==undefined) counts[r.status]++; });
+  document.getElementById('venue-req-count').textContent = allRequests.length;
+  document.getElementById('venue-filter-tabs').innerHTML = ['pending','approved','rejected'].map(f => `
+    <button class="ftab ${venueFilter===f?'on-'+f:''}" onclick="setVF('${f}')">
+      ${f.charAt(0).toUpperCase()+f.slice(1)}
+      ${counts[f]>0?`<span class="ftab-count">${counts[f]}</span>`:''}
+    </button>
+  `).join('');
+}
+
+window.setVF = function(f) { venueFilter = f; renderVenueFilters(); renderVenueList(); };
+
+// ── VENUE LIST ────────────────────────────────────────────
+function renderVenueList() {
+  const filtered = allRequests.filter(r => r.status === venueFilter);
+  const el = document.getElementById('venue-list');
+  if (!filtered.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">${venueFilter==='pending'?'📭':venueFilter==='approved'?'✅':'🚫'}</div><div class="empty-title">No ${venueFilter} applications</div></div>`;
+    return;
+  }
+  el.innerHTML = `<table class="data-table">
+    <thead><tr><th>Applicant</th><th>Venue</th><th>City</th><th>Submitted</th><th>Status</th><th></th></tr></thead>
+    <tbody>${filtered.map(r => venueRow(r)).join('')}</tbody>
+  </table>`;
+}
+
+function venueRow(r) {
+  const name  = esc(r.fullName || r.full_name || '—');
+  const venue = esc(r.venueName || r.venue_name || '—');
+  const actions = r.status === 'pending'
+    ? `<div class="action-cell">
+        <button class="btn btn-reject"  onclick="rejectVenue('${r.id}','${name}')">Reject</button>
+        <button class="btn btn-approve" onclick="approveVenue('${r.id}','${r.userId||r.user_id||''}','${name}')">Approve</button>
+       </div>`
+    : `<span class="td-muted">${timeAgo(r.reviewedAt)}</span>`;
+  return `<tr>
+    <td><div class="name-cell"><div class="av av-user">${name[0].toUpperCase()}</div><div><div class="td-name">${name}</div><div class="td-muted">${esc(r.email||'')}</div></div></div></td>
+    <td class="td-name">${venue}</td>
+    <td class="td-muted">${esc(r.city||'—')}</td>
+    <td class="td-muted">${timeAgo(r.createdAt)}</td>
+    <td><span class="status-pill status-${r.status}">${r.status}</span></td>
+    <td>${actions}</td>
+  </tr>`;
+}
+
+// ── APPROVE / REJECT ──────────────────────────────────────
+window.approveVenue = async function(reqId, userId, name) {
+  if (!confirm(`Approve ${name}?\n\nThey will be able to publish events immediately.`)) return;
+  try {
+    await updateDoc(doc(db,'venue_requests',reqId), { status:'approved', reviewedAt: serverTimestamp() });
+    if (userId) await updateDoc(doc(db,'users',userId), { role:'venue_owner' });
+    toast(`✅ ${name} approved — now live on Tonight`);
+  } catch(e) { toast(`Error: ${e.message}`); }
+};
+
+window.rejectVenue = async function(reqId, name) {
+  if (!confirm(`Reject the application from ${name}?`)) return;
+  try {
+    await updateDoc(doc(db,'venue_requests',reqId), { status:'rejected', reviewedAt: serverTimestamp() });
+    toast(`Request from ${name} rejected`);
+  } catch(e) { toast(`Error: ${e.message}`); }
+};
+
+// ── EVENTS — APPROVAL WORKFLOW ────────────────────────────
+let eventFilter = 'pending';
+
+function renderEventsTable() {
+  const pending  = allEvents.filter(e => !e.status || e.status === 'pending').length;
+  const approved = allEvents.filter(e => e.status === 'approved').length;
+  const rejected = allEvents.filter(e => e.status === 'rejected').length;
+
+  document.getElementById('events-count').textContent = allEvents.length;
+
+  // Badge on nav
+  const badge = document.getElementById('events-badge');
+  const mbadge = document.getElementById('m-events-badge');
+  if (pending > 0) {
+    badge.textContent = pending; badge.classList.remove('hide');
+    if (mbadge) mbadge.classList.remove('hide');
+  } else {
+    badge.classList.add('hide');
+    if (mbadge) mbadge.classList.add('hide');
+  }
+
+  // Filter tabs
+  document.getElementById('event-filter-tabs').innerHTML = [
+    ['pending',  `Pending Review${pending  > 0 ? ` (${pending})`  : ''}`],
+    ['approved', `Approved${approved > 0 ? ` (${approved})` : ''}`],
+    ['rejected', `Rejected${rejected > 0 ? ` (${rejected})` : ''}`],
+    ['all',      `All (${allEvents.length})`],
+  ].map(([f, label]) =>
+    `<button class="ftab ${eventFilter===f?'on-'+f:''}" onclick="setEF('${f}')">${label}</button>`
+  ).join('');
+
+  // Filtered list
+  const filtered = eventFilter === 'all'
+    ? allEvents
+    : allEvents.filter(e => {
+        if (eventFilter === 'pending') return !e.status || e.status === 'pending';
+        return e.status === eventFilter;
+      });
+
+  const el = document.getElementById('event-list');
+  if (!filtered.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">${eventFilter==='pending'?'📭':'🎫'}</div><div class="empty-title">No ${eventFilter} events</div></div>`;
+    return;
+  }
+
+  const colSpan = eventFilter === 'pending' ? 6 : 5;
+  el.innerHTML = `<table class="data-table">
+    <thead><tr>
+      <th>Event</th>
+      <th>Venue · City</th>
+      <th>Date</th>
+      <th>Type</th>
+      ${eventFilter === 'pending' ? '' : '<th>Email</th>'}
+      <th>Submitted</th>
+      ${eventFilter === 'pending' ? '<th>Action</th>' : ''}
+    </tr></thead>
+    <tbody>${filtered.map(e => eventApprovalRow(e)).join('')}</tbody>
+  </table>`;
+}
+
+function eventApprovalRow(e) {
+  const statusColor = {
+    pending:  'background:rgba(249,115,22,.1);color:#f97316',
+    approved: 'background:rgba(34,197,94,.1);color:#22c55e',
+    rejected: 'background:rgba(239,68,68,.1);color:#ef4444',
+  }[e.status || 'pending'] || 'background:rgba(249,115,22,.1);color:#f97316';
+
+  const statusLabel = e.status ? e.status.charAt(0).toUpperCase()+e.status.slice(1) : 'Pending';
+  const emailBadge  = e.emailSent
+    ? `<span class="status-pill" style="background:rgba(34,197,94,.1);color:#22c55e">✓ Sent (${e.emailCount||0})</span>`
+    : `<span class="status-pill" style="background:rgba(255,255,255,.05);color:var(--text3)">Not sent</span>`;
+
+  const actions = (!e.status || e.status === 'pending')
+    ? `<div class="action-cell">
+        <button class="btn btn-reject"  onclick="rejectEvent('${e.id}','${esc(e.title||'')}')">Reject</button>
+        <button class="btn btn-approve" onclick="approveEvent('${e.id}','${esc(e.title||'')}','${esc(e.venueName||'')}')">Approve &amp; Publish</button>
+       </div>`
+    : `<span class="td-muted">${timeAgo(e.approvedAt || e.createdAt)}</span>`;
+
+  return `<tr>
+    <td>
+      <div class="name-cell">
+        <span style="font-size:18px;margin-right:6px">${e.emoji||'🎵'}</span>
+        <div>
+          <div class="td-name">${esc(e.title||'—')}</div>
+          ${e.featured?'<span class="status-pill" style="background:rgba(245,200,66,.1);color:#f5c842;font-size:10px">Featured</span>':''}
+        </div>
+      </div>
+    </td>
+    <td class="td-muted">${esc((e.venueName||e.venue||'—')+' · '+(e.city||'—'))}</td>
+    <td class="td-muted">${shortDate(e.date)}${e.time?'<br/><span style="font-size:11px">'+esc(e.time)+'</span>':''}</td>
+    <td class="td-muted">${esc(e.genre||'—')}</td>
+    ${eventFilter === 'pending' ? '' : `<td>${emailBadge}</td>`}
+    <td class="td-muted">${timeAgo(e.createdAt)}</td>
+    ${eventFilter === 'pending' ? `<td>${actions}</td>` : ''}
+  </tr>`;
+}
+
+window.setEF = function(f) { eventFilter = f; renderEventsTable(); };
+
+// ── APPROVE EVENT → Cloud Function fires automatically → sends emails ─────────
+window.approveEvent = async function(eventId, title, venueName) {
+  if (!confirm(`Approve "${title}" by ${venueName}?\n\nThis will:\n✅ Publish the event on Tonight Vietnam\n📧 Email ALL users in that city automatically`)) return;
+  try {
+    await updateDoc(doc(db,'events',eventId), {
+      status:     'approved',
+      approvedAt: serverTimestamp(),
+      approvedBy: auth.currentUser?.email || 'staff',
+      // Cloud Function watches this status change and fires emails
+    });
+    toast(`✅ "${title}" approved — email notifications sending now`);
+  } catch(e) { toast(`Error: ${e.message}`); }
+};
+
+window.rejectEvent = async function(eventId, title) {
+  if (!confirm(`Reject "${title}"?\n\nThe venue will be able to submit again.`)) return;
+  try {
+    await updateDoc(doc(db,'events',eventId), {
+      status:     'rejected',
+      rejectedAt: serverTimestamp(),
+    });
+    toast(`Event rejected`);
+  } catch(e) { toast(`Error: ${e.message}`); }
+};
+
+// ── NAV ───────────────────────────────────────────────────
+const TITLES = { overview:'Overview', members:'Members', venues:'Venue Applications', events:'Event Approvals' };
+window.nav = function(page, btn) {
+  document.querySelectorAll('.nav-item,.mobile-tabbar button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  // Sync sidebar + mobile bar
+  document.querySelectorAll(`.nav-item, .mobile-tabbar button`).forEach(b => {
+    if(b.getAttribute('onclick')===`nav('${page}',this)`) b.classList.add('active');
+  });
+  document.getElementById('panel-'+page).classList.add('active');
+  document.getElementById('page-title').textContent = TITLES[page];
+};
+
+window.refresh = function() { toast('Data is live — updates automatically'); };
+
+// ── UTILS ─────────────────────────────────────────────────
+function timeAgo(ts) {
+  if (!ts) return '—';
+  const ms = ts?.toMillis?.() || ts?.seconds*1000 || new Date(ts).getTime();
+  if (!ms || isNaN(ms)) return '—';
+  const diff = Date.now() - ms;
+  const m = Math.floor(diff/60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m/60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h/24);
+  if (d < 30) return `${d}d ago`;
+  return new Date(ms).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'});
+}
+
+function shortDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function emptyRow(msg, emoji='📭') {
+  return `<div class="empty"><div class="empty-icon">${emoji}</div><div class="empty-title">${msg}</div></div>`;
+}
+
+let toastTimer;
+window.toast = function(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), 3000);
+};
+
+</script>
+</body>
+</html>
